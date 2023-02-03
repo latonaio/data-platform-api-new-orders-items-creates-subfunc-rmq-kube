@@ -8,6 +8,8 @@ type ProductMasterGeneral struct {
 	GrossWeight                   *float32 `json:"GrossWeight"`
 	NetWeight                     *float32 `json:"NetWeight"`
 	WeightUnit                    *string  `json:"WeightUnit"`
+	InternalCapacityQuantity      *float32 `json:"InternalCapacityQuantity"`
+	InternalCapacityQuantityUnit  *string  `json:"InternalCapacityQuantityUnit"`
 	ItemCategory                  *string  `json:"ItemCategory"`
 	ProductAccountAssignmentGroup *string  `json:"ProductAccountAssignmentGroup"`
 	CountryOfOrigin               *string  `json:"CountryOfOrigin"`

@@ -30,6 +30,8 @@ spec:
               value: "data-platform-api-orders-items-creates-subfunc-queue"
             - name : "RMQ_QUEUE_TO"
               value: "data-platform-api-orders-items-creates-subfunc-queue"
+            - name: "RMQ_SESSION_CONTROL_QUEUE"
+              value: "data-platform-api-orders-items-creates-subfunc-session-control-queue"
             - name : "MYSQL_DB_NAME"
               value: "DataPlatformMastersAndTransactionsMysqlKube"
           envFrom:

@@ -1,22 +1,22 @@
 package api_input_reader
 
 type SDC struct {
-	ConnectionKey         string                `json:"connection_key"`
-	Result                bool                  `json:"result"`
-	RedisKey              string                `json:"redis_key"`
-	Filepath              string                `json:"filepath"`
-	APIStatusCode         int                   `json:"api_status_code"`
-	RuntimeSessionID      string                `json:"runtime_session_id"`
-	BusinessPartnerID     *int                  `json:"business_partner"`
-	ServiceLabel          string                `json:"service_label"`
-	OrdersInputParameters OrdersInputParameters `json:"OrdersInputParameters"`
-	Header                Header                `json:"Orders"`
-	APISchema             string                `json:"api_schema"`
-	Accepter              []string              `json:"accepter"`
-	Deleted               bool                  `json:"deleted"`
+	ConnectionKey     string          `json:"connection_key"`
+	Result            bool            `json:"result"`
+	RedisKey          string          `json:"redis_key"`
+	Filepath          string          `json:"filepath"`
+	APIStatusCode     int             `json:"api_status_code"`
+	RuntimeSessionID  string          `json:"runtime_session_id"`
+	BusinessPartnerID *int            `json:"business_partner"`
+	ServiceLabel      string          `json:"service_label"`
+	InputParameters   InputParameters `json:"InputParameters"`
+	Header            Header          `json:"Orders"`
+	APISchema         string          `json:"api_schema"`
+	Accepter          []string        `json:"accepter"`
+	Deleted           bool            `json:"deleted"`
 }
 
-type OrdersInputParameters struct {
+type InputParameters struct {
 	ReferenceDocument     *int `json:"ReferenceDocument"`
 	ReferenceDocumentItem *int `json:"ReferenceDocumentItem"`
 }
@@ -64,6 +64,8 @@ type Header struct {
 	InvoiceDocumentDate             *string   `json:"InvoiceDocumentDate"`
 	IsExportImportDelivery          *bool     `json:"IsExportImportDelivery"`
 	HeaderText                      *string   `json:"HeaderText"`
+	HeaderIsCancelled               *bool     `json:"HeaderIsCancelled"`
+	HeaderIsDeleted                 *bool     `json:"HeaderIsDeleted"`
 	Item                            []Item    `json:"Item"`
 	Partner                         []Partner `json:"Partner"`
 	Address                         []Address `json:"Address"`
@@ -127,7 +129,9 @@ type Item struct {
 	BatchMgmtPolicyInDeliverToPlant               *string              `json:"BatchMgmtPolicyInDeliverToPlant"`
 	DeliverToPlantBatch                           *string              `json:"DeliverToPlantBatch"`
 	DeliverToPlantBatchValidityStartDate          *string              `json:"DeliverToPlantBatchValidityStartDate"`
+	DeliverToPlantBatchValidityStartTime          *string              `json:"DeliverToPlantBatchValidityStartTime"`
 	DeliverToPlantBatchValidityEndDate            *string              `json:"DeliverToPlantBatchValidityEndDate"`
+	DeliverToPlantBatchValidityEndTime            *string              `json:"DeliverToPlantBatchValidityEndTime"`
 	DeliverFromPlant                              *string              `json:"DeliverFromPlant"`
 	DeliverFromPlantTimeZone                      *string              `json:"DeliverFromPlantTimeZone"`
 	DeliverFromPlantStorageLocation               *string              `json:"DeliverFromPlantStorageLocation"`
@@ -135,16 +139,20 @@ type Item struct {
 	BatchMgmtPolicyInDeliverFromPlant             *string              `json:"BatchMgmtPolicyInDeliverFromPlant"`
 	DeliverFromPlantBatch                         *string              `json:"DeliverFromPlantBatch"`
 	DeliverFromPlantBatchValidityStartDate        *string              `json:"DeliverFromPlantBatchValidityStartDate"`
+	DeliverFromPlantBatchValidityStartTime        *string              `json:"DeliverFromPlantBatchValidityStartTime"`
 	DeliverFromPlantBatchValidityEndDate          *string              `json:"DeliverFromPlantBatchValidityEndDate"`
+	DeliverFromPlantBatchValidityEndTime          *string              `json:"DeliverFromPlantBatchValidityEndTime"`
 	DeliveryUnit                                  *string              `json:"DeliveryUnit"`
 	StockConfirmationBusinessPartner              *int                 `json:"StockConfirmationBusinessPartner"`
 	StockConfirmationPlant                        *string              `json:"StockConfirmationPlant"`
 	StockConfirmationPlantTimeZone                *string              `json:"StockConfirmationPlantTimeZone"`
 	ProductIsBatchManagedInStockConfirmationPlant *bool                `json:"ProductIsBatchManagedInStockConfirmationPlant"`
-	BatchMgmtPolicyStockConfirmationInPlant       *string              `json:"BatchMgmtPolicyStockConfirmationInPlant"`
+	BatchMgmtPolicyInStockConfirmationPlant       *string              `json:"BatchMgmtPolicyInStockConfirmationPlant"`
 	StockConfirmationPlantBatch                   *string              `json:"StockConfirmationPlantBatch"`
 	StockConfirmationPlantBatchValidityStartDate  *string              `json:"StockConfirmationPlantBatchValidityStartDate"`
+	StockConfirmationPlantBatchValidityStartTime  *string              `json:"StockConfirmationPlantBatchValidityStartTime"`
 	StockConfirmationPlantBatchValidityEndDate    *string              `json:"StockConfirmationPlantBatchValidityEndDate"`
+	StockConfirmationPlantBatchValidityEndTime    *string              `json:"StockConfirmationPlantBatchValidityEndTime"`
 	ServicesRenderingDate                         *string              `json:"ServicesRenderingDate"`
 	OrderQuantityInBaseUnit                       *float32             `json:"OrderQuantityInBaseUnit"`
 	OrderQuantityInDeliveryUnit                   *float32             `json:"OrderQuantityInDeliveryUnit"`
@@ -156,6 +164,8 @@ type Item struct {
 	ItemGrossWeight                               *float32             `json:"ItemGrossWeight"`
 	ProductNetWeight                              *float32             `json:"ProductNetWeight"`
 	ItemNetWeight                                 *float32             `json:"ItemNetWeight"`
+	InternalCapacityQuantity                      *float32             `json:"InternalCapacityQuantity"`
+	InternalCapacityQuantityUnit                  *string              `json:"InternalCapacityQuantityUnit"`
 	NetAmount                                     *float32             `json:"NetAmount"`
 	TaxAmount                                     *float32             `json:"TaxAmount"`
 	GrossAmount                                   *float32             `json:"GrossAmount"`
@@ -164,11 +174,13 @@ type Item struct {
 	ProductionPlant                               *string              `json:"ProductionPlant"`
 	ProductionPlantTimeZone                       *string              `json:"ProductionPlantTimeZone"`
 	ProductionPlantStorageLocation                *string              `json:"ProductionPlantStorageLocation"`
-	ProductIsBatchManagedInProductionPlant        *string              `json:"ProductIsBatchManagedInProductionPlant"`
-	BatchMgmtPolicyInProductionPlant              *bool                `json:"BatchMgmtPolicyInProductionPlant"`
+	ProductIsBatchManagedInProductionPlant        *bool                `json:"ProductIsBatchManagedInProductionPlant"`
+	BatchMgmtPolicyInProductionPlant              *string              `json:"BatchMgmtPolicyInProductionPlant"`
 	ProductionPlantBatch                          *string              `json:"ProductionPlantBatch"`
 	ProductionPlantBatchValidityStartDate         *string              `json:"ProductionPlantBatchValidityStartDate"`
+	ProductionPlantBatchValidityStartTime         *string              `json:"ProductionPlantBatchValidityStartTime"`
 	ProductionPlantBatchValidityEndDate           *string              `json:"ProductionPlantBatchValidityEndDate"`
+	ProductionPlantBatchValidityEndTime           *string              `json:"ProductionPlantBatchValidityEndTime"`
 	Incoterms                                     *string              `json:"Incoterms"`
 	TransactionTaxClassification                  *string              `json:"TransactionTaxClassification"`
 	ProductTaxClassificationBillToCountry         *string              `json:"ProductTaxClassificationBillToCountry"`
@@ -197,6 +209,8 @@ type Item struct {
 	ItemBlockStatus                               *bool                `json:"ItemBlockStatus"`
 	ItemDeliveryBlockStatus                       *bool                `json:"ItemDeliveryBlockStatus"`
 	ItemBillingBlockStatus                        *bool                `json:"ItemBillingBlockStatus"`
+	ItemIsCancelled                               *bool                `json:"ItemIsCancelled"`
+	ItemIsDeleted                                 *bool                `json:"ItemIsDeleted"`
 	ItemPricingElement                            []ItemPricingElement `json:"ItemPricingElement"`
 	ItemScheduleLine                              []ItemScheduleLine   `json:"ItemScheduleLine"`
 }

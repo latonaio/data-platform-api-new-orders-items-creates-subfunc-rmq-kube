@@ -4,7 +4,8 @@ type BusinessPartnerGeneral struct {
 	BusinessPartner         int     `json:"BusinessPartner"`
 	BusinessPartnerFullName *string `json:"BusinessPartnerFullName"`
 	BusinessPartnerName     string  `json:"BusinessPartnerName"`
-	OrganizationBPName1     *string `json:"OrganizationBPName1"`
+	Country                 string  `json:"Country"`
 	Language                string  `json:"Language"`
+	Currency                string  `json:"Currency"`
 	AddressID               *int    `json:"AddressID"`
 }

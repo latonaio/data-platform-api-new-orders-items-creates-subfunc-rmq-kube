@@ -54,39 +54,78 @@ type EC_MC struct {
 }
 
 type SDC struct {
-	MetaData                                            *MetaData                                              `json:"MetaData"`
-	SupplyChainRelationshipGeneral                      []*SupplyChainRelationshipGeneral                      `json:"SupplyChainRelationshipGeneral"`
-	SupplyChainRelationshipDeliveryRelation             []*SupplyChainRelationshipDeliveryRelation             `json:"SupplyChainRelationshipDeliveryRelation"`
-	SupplyChainRelationshipDeliveryPlantRelation        []*SupplyChainRelationshipDeliveryPlantRelation        `json:"SupplyChainRelationshipDeliveryPlantRelation"`
-	SupplyChainRelationshipTransaction                  []*SupplyChainRelationshipTransaction                  `json:"SupplyChainRelationshipTransaction"`
-	SupplyChainRelationshipBillingRelation              []*SupplyChainRelationshipBillingRelation              `json:"SupplyChainRelationshipBillingRelation"`
-	CalculateOrderID                                    *CalculateOrderID                                      `json:"CalculateOrderID"`
-	OrderItem                                           []*OrderItem                                           `json:"OrderItem"`
-	ProductTaxClassificationBillToCountry               []*ProductTaxClassificationBillToCountry               `json:"ProductTaxClassificationBillToCountry"`
-	ProductTaxClassificationBillFromCountry             []*ProductTaxClassificationBillFromCountry             `json:"ProductTaxClassificationBillFromCountry"`
-	DefinedTaxClassification                            []*DefinedTaxClassification                            `json:"DefinedTaxClassification"`
-	ProductMasterGeneral                                []*ProductMasterGeneral                                `json:"ProductMasterGeneral"`
-	OrderItemText                                       []*OrderItemText                                       `json:"OrderItemText"`
-	ItemCategoryIsINVP                                  []*ItemCategoryIsINVP                                  `json:"ItemCategoryIsINVP"`
-	StockConfPlantRelationProduct                       []*StockConfPlantRelationProduct                       `json:"StockConfPlantRelationProduct"`
-	StockConfPlantProductMasterBPPlant                  []*ProductMasterBPPlant                                `json:"StockConfPlantProductMasterBPPlant"`
-	StockConfPlantBPGeneral                             []*BusinessPartnerGeneral                              `json:"StockConfPlantBPGeneral"`
-	ProductionPlantRelationProduct                      []*ProductionPlantRelationProduct                      `json:"ProductionPlantRelationProduct"`
-	ProductionPlantProductMasterBPPlant                 []*ProductMasterBPPlant                                `json:"ProductionPlantProductMasterBPPlant"`
-	ProductionPlantBPGeneral                            []*BusinessPartnerGeneral                              `json:"ProductionPlantBPGeneral"`
-	SupplyChainRelationshipDeliveryPlantRelationProduct []*SupplyChainRelationshipDeliveryPlantRelationProduct `json:"SupplyChainRelationshipDeliveryPlantRelationProduct"`
-	SupplyChainRelationshipProductMasterBPPlant         []*ProductMasterBPPlant                                `json:"SupplyChainRelationshipProductMasterBPPlant"`
-	ProductionPlantTimeZone                             []*TimeZone                                            `json:"ProductionPlantTimeZone"`
-	DeliverToPlantTimeZone                              []*TimeZone                                            `json:"DeliverToPlantTimeZone"`
-	DeliverFromPlantTimeZone                            []*TimeZone                                            `json:"DeliverFromPlantTimeZone"`
-	StockConfirmationPlantTimeZone                      []*TimeZone                                            `json:"StockConfirmationPlantTimeZone"`
-	Incoterms                                           []*Incoterms                                           `json:"Incoterms"`
-	PaymentTerms                                        []*PaymentTerms                                        `json:"PaymentTerms"`
-	PaymentMethod                                       []*PaymentMethod                                       `json:"PaymentMethod"`
-	ItemGrossWeight                                     []*ItemGrossWeight                                     `json:"ItemGrossWeight"`
-	ItemNetWeight                                       []*ItemNetWeight                                       `json:"ItemNetWeight"`
-	CreationDateItem                                    *CreationDateItem                                      `json:"CreationDateItem"`
-	LastChangeDateItem                                  *LastChangeDateItem                                    `json:"LastChangeDateItem"`
+	MetaData                                               *MetaData                                              `json:"MetaData"`
+	SupplyChainRelationshipGeneral                         []*SupplyChainRelationshipGeneral                      `json:"SupplyChainRelationshipGeneral"`
+	SupplyChainRelationshipDeliveryRelation                []*SupplyChainRelationshipDeliveryRelation             `json:"SupplyChainRelationshipDeliveryRelation"`
+	SupplyChainRelationshipDeliveryPlantRelation           []*SupplyChainRelationshipDeliveryPlantRelation        `json:"SupplyChainRelationshipDeliveryPlantRelation"`
+	SupplyChainRelationshipTransaction                     []*SupplyChainRelationshipTransaction                  `json:"SupplyChainRelationshipTransaction"`
+	SupplyChainRelationshipBillingRelation                 []*SupplyChainRelationshipBillingRelation              `json:"SupplyChainRelationshipBillingRelation"`
+	SupplyChainRelationshipPaymentRelation                 []*SupplyChainRelationshipPaymentRelation              `json:"SupplyChainRelationshipPaymentRelation"`
+	CalculateOrderID                                       *CalculateOrderID                                      `json:"CalculateOrderID"`
+	PaymentTerms                                           []*PaymentTerms                                        `json:"PaymentTerms"`
+	HeaderInvoiceDocumentDate                              *HeaderInvoiceDocumentDate                             `json:"HeaderInvoiceDocumentDate"`
+	HeaderPricingDate                                      *PricingDate                                           `json:"HeaderPricingDate"`
+	HeaderPriceDetnExchangeRate                            *PriceDetnExchangeRate                                 `json:"HeaderPriceDetnExchangeRate"`
+	HeaderAccountingExchangeRate                           *AccountingExchangeRate                                `json:"HeaderAccountingExchangeRate"`
+	BusinessPartnerGeneralBuyer                            []*BusinessPartnerGeneral                              `json:"BusinessPartnerGeneralBuyer"`
+	BusinessPartnerGeneralSeller                           []*BusinessPartnerGeneral                              `json:"BusinessPartnerGeneralSeller"`
+	BusinessPartnerGeneralDeliverToParty                   []*BusinessPartnerGeneral                              `json:"BusinessPartnerGeneralDeliverToParty"`
+	BusinessPartnerGeneralDeliverFromParty                 []*BusinessPartnerGeneral                              `json:"BusinessPartnerGeneralDeliverFromParty"`
+	BusinessPartnerGeneralBillToParty                      []*BusinessPartnerGeneral                              `json:"BusinessPartnerGeneralBillToParty"`
+	BusinessPartnerGeneralBillFromParty                    []*BusinessPartnerGeneral                              `json:"BusinessPartnerGeneralBillFromParty"`
+	BusinessPartnerGeneralPayer                            []*BusinessPartnerGeneral                              `json:"BusinessPartnerGeneralPayer"`
+	BusinessPartnerGeneralPayee                            []*BusinessPartnerGeneral                              `json:"BusinessPartnerGeneralPayee"`
+	OrderItem                                              []*OrderItem                                           `json:"OrderItem"`
+	ProductTaxClassificationBillToCountry                  []*ProductTaxClassificationBillToCountry               `json:"ProductTaxClassificationBillToCountry"`
+	ProductTaxClassificationBillFromCountry                []*ProductTaxClassificationBillFromCountry             `json:"ProductTaxClassificationBillFromCountry"`
+	DefinedTaxClassification                               []*DefinedTaxClassification                            `json:"DefinedTaxClassification"`
+	ProductMasterGeneral                                   []*ProductMasterGeneral                                `json:"ProductMasterGeneral"`
+	OrderItemText                                          []*OrderItemText                                       `json:"OrderItemText"`
+	ItemCategoryIsINVP                                     []*ItemCategoryIsINVP                                  `json:"ItemCategoryIsINVP"`
+	StockConfPlantRelationProduct                          []*StockConfPlantRelationProduct                       `json:"StockConfPlantRelationProduct"`
+	StockConfPlantProductMasterBPPlant                     []*ProductMasterBPPlant                                `json:"StockConfPlantProductMasterBPPlant"`
+	StockConfPlantBPGeneral                                []*BusinessPartnerGeneral                              `json:"StockConfPlantBPGeneral"`
+	ProductionPlantRelationProduct                         []*ProductionPlantRelationProduct                      `json:"ProductionPlantRelationProduct"`
+	ProductionPlantProductMasterBPPlant                    []*ProductMasterBPPlant                                `json:"ProductionPlantProductMasterBPPlant"`
+	ProductionPlantBPGeneral                               []*BusinessPartnerGeneral                              `json:"ProductionPlantBPGeneral"`
+	SupplyChainRelationshipDeliveryPlantRelationProduct    []*SupplyChainRelationshipDeliveryPlantRelationProduct `json:"SupplyChainRelationshipDeliveryPlantRelationProduct"`
+	SupplyChainRelationshipProductMasterBPPlantDeliverTo   []*ProductMasterBPPlant                                `json:"SupplyChainRelationshipProductMasterBPPlantDeliverTo"`
+	SupplyChainRelationshipProductMasterBPPlantDeliverFrom []*ProductMasterBPPlant                                `json:"SupplyChainRelationshipProductMasterBPPlantDeliverFrom"`
+	ProductionPlantTimeZone                                []*TimeZone                                            `json:"ProductionPlantTimeZone"`
+	DeliverToPlantTimeZone                                 []*TimeZone                                            `json:"DeliverToPlantTimeZone"`
+	DeliverFromPlantTimeZone                               []*TimeZone                                            `json:"DeliverFromPlantTimeZone"`
+	StockConfirmationPlantTimeZone                         []*TimeZone                                            `json:"StockConfirmationPlantTimeZone"`
+	Incoterms                                              []*Incoterms                                           `json:"Incoterms"`
+	ItemPaymentTerms                                       []*ItemPaymentTerms                                    `json:"ItemPaymentTerms"`
+	PaymentMethod                                          []*PaymentMethod                                       `json:"PaymentMethod"`
+	ItemGrossWeight                                        []*ItemGrossWeight                                     `json:"ItemGrossWeight"`
+	ItemNetWeight                                          []*ItemNetWeight                                       `json:"ItemNetWeight"`
+	TaxCode                                                []*TaxCode                                             `json:"TaxCode"`
+	TaxRate                                                []*TaxRate                                             `json:"TaxRate"`
+	OrdinaryStockConfirmation                              []*OrdinaryStockConfirmation                           `json:"OrdinaryStockConfirmation"`
+	OrdinaryStockConfirmationOrdersItemScheduleLine        []*OrdersItemScheduleLine                              `json:"OrdinaryStockConfirmationOrdersItemScheduleLine"`
+	ConfirmedOrderQuantityInBaseUnit                       []*ConfirmedOrderQuantityInBaseUnit                    `json:"ConfirmedOrderQuantityInBaseUnit"`
+	ItemPricingDate                                        []*PricingDate                                         `json:"ItemPricingDate"`
+	ItemInvoiceDocumentDate                                []*ItemInvoiceDocumentDate                             `json:"ItemInvoiceDocumentDate"`
+	ItemPriceDetnExchangeRate                              []*PriceDetnExchangeRate                               `json:"ItemPriceDetnExchangeRate"`
+	ItemAccountingExchangeRate                             []*AccountingExchangeRate                              `json:"ItemAccountingExchangeRate"`
+	ItemReferenceDocument                                  []*ItemReferenceDocument                               `json:"ItemReferenceDocument"`
+	OrderItemTextByBuyer                                   []*OrderItemTextByBuyerSeller                          `json:"OrderItemTextByBuyer"`
+	OrderItemTextBySeller                                  []*OrderItemTextByBuyerSeller                          `json:"OrderItemTextBySeller"`
+	PriceMaster                                            []*PriceMaster                                         `json:"PriceMaster"`
+	ConditionAmount                                        []*ConditionAmount                                     `json:"ConditionAmount"`
+	ConditionRateValue                                     []*ConditionRateValue                                  `json:"ConditionRateValue"`
+	ConditionIsManuallyChanged                             []*ConditionIsManuallyChanged                          `json:"ConditionIsManuallyChanged"`
+	PricingProcedureCounter                                []*PricingProcedureCounter                             `json:"PricingProcedureCounter"`
+	NetAmount                                              []*NetAmount                                           `json:"NetAmount"`
+	TaxAmount                                              []*TaxAmount                                           `json:"TaxAmount"`
+	GrossAmount                                            []*GrossAmount                                         `json:"GrossAmount"`
+	Address                                                []*Address                                             `json:"Address"`
+	QuantityUnitConversion                                 []*QuantityUnitConversion                              `json:"QuantityUnitConversion"`
+	OrderQuantityInDeliveryUnit                            []*OrderQuantityInDeliveryUnit                         `json:"OrderQuantityInDeliveryUnit"`
+	Partner                                                []*Partner                                             `json:"Partner"`
+	CreationDateItem                                       *CreationDateItem                                      `json:"CreationDateItem"`
+	LastChangeDateItem                                     *LastChangeDateItem                                    `json:"LastChangeDateItem"`
 }
 
 // Initializer
@@ -175,6 +214,28 @@ type SupplyChainRelationshipBillingRelation struct {
 	TransactionTaxClassification     *string `json:"TransactionTaxClassification"`
 }
 
+type SupplyChainRelationshipPaymentRelationKey struct {
+	SupplyChainRelationshipID []int `json:"SupplyChainRelationshipID"`
+	Buyer                     []int `json:"Buyer"`
+	Seller                    []int `json:"Seller"`
+	BillToParty               []int `json:"BillToParty"`
+	BillFromParty             []int `json:"BillFromParty"`
+	DefaultRelation           bool  `json:"DefaultRelation"`
+}
+
+type SupplyChainRelationshipPaymentRelation struct {
+	SupplyChainRelationshipID        int   `json:"SupplyChainRelationshipID"`
+	SupplyChainRelationshipBillingID int   `json:"SupplyChainRelationshipBillingID"`
+	SupplyChainRelationshipPaymentID int   `json:"SupplyChainRelationshipPaymentID"`
+	Buyer                            int   `json:"Buyer"`
+	Seller                           int   `json:"Seller"`
+	BillToParty                      int   `json:"BillToParty"`
+	BillFromParty                    int   `json:"BillFromParty"`
+	Payer                            int   `json:"Payer"`
+	Payee                            int   `json:"Payee"`
+	DefaultRelation                  *bool `json:"DefaultRelation"`
+}
+
 type CalculateOrderIDKey struct {
 	ServiceLabel             string `json:"service_label"`
 	FieldNameWithNumberRange string `json:"FieldNameWithNumberRange"`
@@ -189,6 +250,59 @@ type CalculateOrderIDQueryGets struct {
 type CalculateOrderID struct {
 	OrderIDLatestNumber *int `json:"OrderIDLatestNumber"`
 	OrderID             int  `json:"OrderID"`
+}
+
+type PaymentTerms struct {
+	PaymentTerms                string `json:"PaymentTerms"`
+	BaseDate                    int    `json:"BaseDate"`
+	BaseDateCalcAddMonth        *int   `json:"BaseDateCalcAddMonth"`
+	BaseDateCalcFixedDate       *int   `json:"BaseDateCalcFixedDate"`
+	PaymentDueDateCalcAddMonth  *int   `json:"PaymentDueDateCalcAddMonth"`
+	PaymentDueDateCalcFixedDate *int   `json:"PaymentDueDateCalcFixedDate"`
+}
+
+type HeaderInvoiceDocumentDate struct {
+	RequestedDeliveryDate string `json:"RequestedDeliveryDate"`
+	InvoiceDocumentDate   string `json:"InvoiceDocumentDate"`
+}
+
+type PricingDate struct {
+	PricingDate string `json:"PricingDate"`
+}
+
+type PriceDetnExchangeRate struct {
+	PriceDetnExchangeRate *float32 `json:"PriceDetnExchangeRate"`
+}
+
+type AccountingExchangeRate struct {
+	AccountingExchangeRate *float32 `json:"AccountingExchangeRate"`
+}
+
+type BusinessPartnerGeneralDeliveryRelationKey struct {
+	Buyer            int `json:"Buyer"`
+	Seller           int `json:"Seller"`
+	DeliverToParty   int `json:"DeliverToParty"`
+	DeliverFromParty int `json:"DeliverFromParty"`
+}
+
+type BusinessPartnerGeneralBillingRelationKey struct {
+	BillToParty   int `json:"BillToParty"`
+	BillFromParty int `json:"BillFromParty"`
+}
+
+type BusinessPartnerGeneralPaymentRelationKey struct {
+	Payer int `json:"Payer"`
+	Payee int `json:"Payee"`
+}
+
+type BusinessPartnerGeneral struct {
+	BusinessPartner         int     `json:"BusinessPartner"`
+	BusinessPartnerFullName *string `json:"BusinessPartnerFullName"`
+	BusinessPartnerName     string  `json:"BusinessPartnerName"`
+	Country                 string  `json:"Country"`
+	Language                string  `json:"Language"`
+	Currency                string  `json:"Currency"`
+	AddressID               *int    `json:"AddressID"`
 }
 
 // Item
@@ -238,6 +352,8 @@ type ProductMasterGeneral struct {
 	GrossWeight                   *float32 `json:"GrossWeight"`
 	NetWeight                     *float32 `json:"NetWeight"`
 	WeightUnit                    *string  `json:"WeightUnit"`
+	InternalCapacityQuantity      *float32 `json:"InternalCapacityQuantity"`
+	InternalCapacityQuantityUnit  *string  `json:"InternalCapacityQuantityUnit"`
 	ItemCategory                  *string  `json:"ItemCategory"`
 	ProductAccountAssignmentGroup *string  `json:"ProductAccountAssignmentGroup"`
 	CountryOfOrigin               *string  `json:"CountryOfOrigin"`
@@ -261,9 +377,9 @@ type ItemCategoryIsINVP struct {
 }
 
 type StockConfPlantRelationProductKey struct {
-	SupplyChainRelationshipID int      `json:"SupplyChainRelationshipID"`
-	Buyer                     int      `json:"Buyer"`
-	Seller                    int      `json:"Seller"`
+	SupplyChainRelationshipID []int    `json:"SupplyChainRelationshipID"`
+	Buyer                     []int    `json:"Buyer"`
+	Seller                    []int    `json:"Seller"`
 	Product                   []string `json:"Product"`
 }
 
@@ -291,19 +407,10 @@ type ProductMasterBPPlant struct {
 	BatchManagementPolicy     *string `json:"BatchManagementPolicy"`
 }
 
-type BusinessPartnerGeneral struct {
-	BusinessPartner         int     `json:"BusinessPartner"`
-	BusinessPartnerFullName *string `json:"BusinessPartnerFullName"`
-	BusinessPartnerName     string  `json:"BusinessPartnerName"`
-	OrganizationBPName1     *string `json:"OrganizationBPName1"`
-	Language                string  `json:"Language"`
-	AddressID               *int    `json:"AddressID"`
-}
-
 type ProductionPlantRelationProductKey struct {
-	SupplyChainRelationshipID int      `json:"SupplyChainRelationshipID"`
-	Buyer                     int      `json:"Buyer"`
-	Seller                    int      `json:"Seller"`
+	SupplyChainRelationshipID []int    `json:"SupplyChainRelationshipID"`
+	Buyer                     []int    `json:"Buyer"`
+	Seller                    []int    `json:"Seller"`
 	Product                   []string `json:"Product"`
 }
 
@@ -359,7 +466,7 @@ type Incoterms struct {
 	Incoterms *string `json:"Incoterms"`
 }
 
-type PaymentTerms struct {
+type ItemPaymentTerms struct {
 	PaymentTerms *string `json:"PaymentTerms"`
 }
 
@@ -368,6 +475,7 @@ type PaymentMethod struct {
 }
 
 type ItemGrossWeight struct {
+	OrderItem               int      `json:"OrderItem"`
 	Product                 string   `json:"Product"`
 	ProductGrossWeight      *float32 `json:"ProductGrossWeight"`
 	OrderQuantityInBaseUnit *float32 `json:"OrderQuantityInBaseUnit"`
@@ -381,6 +489,279 @@ type ItemNetWeight struct {
 	ItemNetWeight           *float32 `json:"ItemNetWeight"`
 }
 
+type TaxCode struct {
+	Product                  string  `json:"Product"`
+	DefinedTaxClassification string  `json:"DefinedTaxClassification"`
+	IsExportImport           *bool   `json:"IsExportImport"`
+	TaxCode                  *string `json:"TaxCode"`
+}
+
+type TaxRateKey struct {
+	Country           string    `json:"Country"`
+	TaxCode           []*string `json:"TaxCode"`
+	ValidityEndDate   string    `json:"ValidityEndDate"`
+	ValidityStartDate string    `json:"ValidityStartDate"`
+}
+
+type TaxRate struct {
+	Country           string   `json:"Country"`
+	TaxCode           string   `json:"TaxCode"`
+	ValidityEndDate   string   `json:"ValidityEndDate"`
+	ValidityStartDate string   `json:"ValidityStartDate"`
+	TaxRate           *float32 `json:"TaxRate"`
+}
+
+type OrdinaryStockConfirmationKey struct {
+	Product                          string `json:"Product"`
+	StockConfirmationBusinessPartner int    `json:"StockConfirmationBusinessPartner"`
+	StockConfirmationPlant           string `json:"StockConfirmationPlant"`
+	RequestedDeliveryDate            string `json:"RequestedDeliveryDate"`
+}
+
+type ProductAvailabilityCheck struct {
+	ConnectionKey     string `json:"connection_key"`
+	Result            bool   `json:"result"`
+	RedisKey          string `json:"redis_key"`
+	Filepath          string `json:"filepath"`
+	APIStatusCode     int    `json:"api_status_code"`
+	RuntimeSessionID  string `json:"runtime_session_id"`
+	BusinessPartnerID *int   `json:"business_partner"`
+	ServiceLabel      string `json:"service_label"`
+	ProductStock      struct {
+		BusinessPartner           int     `json:"BusinessPartner"`
+		Product                   string  `json:"Product"`
+		Plant                     string  `json:"Plant"`
+		StorageLocation           *string `json:"StorageLocation"`
+		Batch                     *string `json:"Batch"`
+		OrderID                   *int    `json:"OrderID"`
+		OrderItem                 *int    `json:"OrderItem"`
+		Project                   *string `json:"Project"`
+		InventoryStockType        *string `json:"InventoryStockType"`
+		InventorySpecialStockType *string `json:"InventorySpecialStockType"`
+		ProductBaseUnit           *string `json:"ProductBaseUnit"`
+		ProductStock              *string `json:"ProductStock"`
+		Availability              struct {
+			BatchValidityEndDate         *string `json:"BatchValidityEndDate"`
+			ProductStockAvailabilityDate string  `json:"ProductStockAvailabilityDate"`
+			AvailableProductStock        *string `json:"AvailableProductStock"`
+		} `json:"Availability"`
+	} `json:"ProductStock"`
+	APISchema        string   `json:"api_schema"`
+	Accepter         []string `json:"accepter"`
+	ProductStockCode string   `json:"product_stock_code"`
+	Deleted          bool     `json:"deleted"`
+}
+
+type OrdinaryStockConfirmation struct {
+	BusinessPartner              int     `json:"BusinessPartner"`
+	Product                      string  `json:"Product"`
+	Plant                        string  `json:"Plant"`
+	ProductStockAvailabilityDate string  `json:"ProductStockAvailabilityDate"`
+	AvailableProductStock        float32 `json:"AvailableProductStock"`
+}
+
+type OrdersItemScheduleLine struct {
+	OrderID                                      int      `json:"OrderID"`
+	OrderItem                                    int      `json:"OrderItem"`
+	ScheduleLine                                 int      `json:"ScheduleLine"`
+	SupplyChainRelationshipID                    int      `json:"SupplyChainRelationshipID"`
+	SupplyChainRelationshipStockConfPlantID      int      `json:"SupplyChainRelationshipStockConfPlantID"`
+	Product                                      string   `json:"Product"`
+	StockConfirmationBussinessPartner            int      `json:"StockConfirmationBussinessPartner"`
+	StockConfirmationPlant                       string   `json:"StockConfirmationPlant"`
+	StockConfirmationPlantTimeZone               *string  `json:"StockConfirmationPlantTimeZone"`
+	StockConfirmationPlantBatch                  *string  `json:"StockConfirmationPlantBatch"`
+	StockConfirmationPlantBatchValidityStartDate *string  `json:"StockConfirmationPlantBatchValidityStartDate"`
+	StockConfirmationPlantBatchValidityEndDate   *string  `json:"StockConfirmationPlantBatchValidityEndDate"`
+	RequestedDeliveryDate                        string   `json:"RequestedDeliveryDate"`
+	ConfirmedDeliveryDate                        string   `json:"ConfirmedDeliveryDate"`
+	OrderQuantityInBaseUnit                      float32  `json:"OrderQuantityInBaseUnit"`
+	ConfirmedOrderQuantityByPDTAvailCheck        float32  `json:"ConfirmedOrderQuantityByPDTAvailCheck"`
+	DeliveredQuantityInBaseUnit                  *float32 `json:"DeliveredQuantityInBaseUnit"`
+	OpenConfirmedQuantityInBaseUnit              *float32 `json:"OpenConfirmedQuantityInBaseUnit"`
+	StockIsFullyConfirmed                        *bool    `json:"StockIsFullyConfirmed"`
+	PlusMinusFlag                                string   `json:"PlusMinusFlag"`
+	ItemScheduleLineDeliveryBlockStatus          *bool    `json:"ItemScheduleLineDeliveryBlockStatus"`
+}
+
+type ConfirmedOrderQuantityInBaseUnit struct {
+	OrderItem                        int     `json:"OrderItem"`
+	ConfirmedOrderQuantityInBaseUnit float32 `json:"ConfirmedOrderQuantityInBaseUnit"`
+}
+
+type ItemInvoiceDocumentDate struct {
+	InvoiceDocumentDate string `json:"InvoiceDocumentDate"`
+}
+
+type ItemReferenceDocument struct {
+	ReferenceDocument     *int `json:"ReferenceDocument"`
+	ReferenceDocumentItem *int `json:"ReferenceDocumentItem"`
+}
+
+type OrderItemTextByBuyerSellerKey struct {
+	Product         []*string `json:"Product"`
+	BusinessPartner []int     `json:"BusinessPartner"`
+	Language        []string  `json:"Language"`
+}
+
+type OrderItemTextByBuyerSeller struct {
+	Product            string  `json:"Product"`
+	BusinessPartner    int     `json:"BusinessPartner"`
+	Language           string  `json:"Language"`
+	ProductDescription *string `json:"ProductDescription"`
+}
+
+// Item Pricing Element
+type PriceMasterKey struct {
+	Product                    []*string `json:"Product"`
+	SupplyChainRelationshipID  []int     `json:"SupplyChainRelationshipID"`
+	Buyer                      []int     `json:"Buyer"`
+	Seller                     []int     `json:"Seller"`
+	ConditionValidityEndDate   string    `json:"ConditionValidityEndDate"`
+	ConditionValidityStartDate string    `json:"ConditionValidityStartDate"`
+}
+
+type PriceMaster struct {
+	SupplyChainRelationshipID  int      `json:"SupplyChainRelationshipID"`
+	Buyer                      int      `json:"Buyer"`
+	Seller                     int      `json:"Seller"`
+	ConditionRecord            int      `json:"ConditionRecord"`
+	ConditionSequentialNumber  int      `json:"ConditionSequentialNumber"`
+	ConditionValidityStartDate string   `json:"ConditionValidityStartDate"`
+	ConditionValidityEndDate   string   `json:"ConditionValidityEndDate"`
+	Product                    string   `json:"Product"`
+	ConditionType              string   `json:"ConditionType"`
+	ConditionRateValue         *float32 `json:"ConditionRateValue"`
+}
+
+type ConditionAmount struct {
+	Product                    string   `json:"Product"`
+	ConditionQuantity          *float32 `json:"ConditionQuantity"`
+	ConditionAmount            *float32 `json:"ConditionAmount"`
+	ConditionIsManuallyChanged *bool    `json:"ConditionIsManuallyChanged"`
+}
+
+type ConditionRateValue struct {
+	Product                       string   `json:"Product"`
+	SupplyChainRelationshipID     int      `json:"SupplyChainRelationshipID"`
+	TaxCode                       string   `json:"TaxCode"`
+	PriceMasterConditionRateValue *float32 `json:"PriceMasterConditionRateValue"`
+	TaxRate                       *float32 `json:"TaxRate"`
+	ConditionRateValue            *float32 `json:"ConditionRateValue"`
+	ConditionQuantity             *float32 `json:"ConditionQuantity"`
+	ConditionAmount               *float32 `json:"ConditionAmount"`
+	ConditionIsManuallyChanged    *bool    `json:"ConditionIsManuallyChanged"`
+}
+
+type ConditionIsManuallyChanged struct {
+	Product                    string `json:"Product"`
+	ConditionIsManuallyChanged *bool  `json:"ConditionIsManuallyChanged"`
+}
+
+type PricingProcedureCounter struct {
+	Product                   string `json:"Product"`
+	SupplyChainRelationshipID int    `json:"SupplyChainRelationshipID"`
+	Buyer                     int    `json:"Buyer"`
+	Seller                    int    `json:"Seller"`
+	PricingProcedureCounter   []int  `json:"PricingProcedureCounter"`
+}
+
+// Amount関連の計算
+type NetAmount struct {
+	Product   string   `json:"Product"`
+	NetAmount *float32 `json:"NetAmount"`
+}
+
+type TaxAmount struct {
+	Product   string   `json:"Product"`
+	TaxCode   *string  `json:"TaxCode"`
+	TaxRate   *float32 `json:"TaxRate"`
+	NetAmount *float32 `json:"NetAmount"`
+	TaxAmount *float32 `json:"TaxAmount"`
+}
+
+type GrossAmount struct {
+	Product     string   `json:"Product"`
+	NetAmount   *float32 `json:"NetAmount"`
+	TaxAmount   *float32 `json:"TaxAmount"`
+	GrossAmount *float32 `json:"GrossAmount"`
+}
+
+// Address
+type AddressKey struct {
+	AddressID       []*int `json:"AddressID"`
+	ValidityEndDate string `json:"ValidityEndDate"`
+}
+
+type Address struct {
+	AddressID       int     `json:"AddressID"`
+	ValidityEndDate string  `json:"ValidityEndDate"`
+	PostalCode      string  `json:"PostalCode"`
+	LocalRegion     string  `json:"LocalRegion"`
+	Country         string  `json:"Country"`
+	District        *string `json:"District"`
+	StreetName      string  `json:"StreetName"`
+	CityName        string  `json:"CityName"`
+	Building        *string `json:"Building"`
+	Floor           *int    `json:"Floor"`
+	Room            *int    `json:"Room"`
+}
+
+type CalculateAddressIDKey struct {
+	ServiceLabel             string `json:"service_label"`
+	FieldNameWithNumberRange string `json:"FieldNameWithNumberRange"`
+}
+
+type CalculateAddressIDQueryGets struct {
+	ServiceLabel             string `json:"service_label"`
+	FieldNameWithNumberRange string `json:"FieldNameWithNumberRange"`
+	LatestNumber             *int   `json:"LatestNumber"`
+}
+
+type CalculateAddressID struct {
+	AddressIDLatestNumber *int `json:"AddressIDLatestNumber"`
+	AddressID             int  `json:"AddressID"`
+}
+
+// 数量単位変換実行の是非の判定
+type QuantityUnitConversionKey struct {
+	Product      string `json:"Product"`
+	BaseUnit     string `json:"BaseUnit"`
+	DeliveryUnit string `json:"DeliveryUnit"`
+}
+
+type QuantityUnitConversionQueryGets struct {
+	Product               string  `json:"Product"`
+	QuantityUnitFrom      string  `json:"QuantityUnitFrom"`
+	QuantityUnitTo        string  `json:"QuantityUnitTo"`
+	ConversionCoefficient float32 `json:"ConversionCoefficient"`
+}
+
+type QuantityUnitConversion struct {
+	OrderItem                   int     `json:"OrderItem"`
+	Product                     string  `json:"Product"`
+	ConversionCoefficient       float32 `json:"ConversionCoefficient"`
+	OrderQuantityInDeliveryUnit float32 `json:"OrderQuantityInDeliveryUnit"`
+}
+
+type OrderQuantityInDeliveryUnit struct {
+	OrderItem                   int     `json:"OrderItem"`
+	OrderQuantityInDeliveryUnit float32 `json:"OrderQuantityInDeliveryUnit"`
+}
+
+// Partner
+type Partner struct {
+	PartnerFunction         string  `json:"PartnerFunction"`
+	BusinessPartner         int     `json:"BusinessPartner"`
+	BusinessPartnerFullName *string `json:"BusinessPartnerFullName"`
+	BusinessPartnerName     *string `json:"BusinessPartnerName"`
+	Country                 *string `json:"Country"`
+	Language                *string `json:"Language"`
+	Currency                *string `json:"Currency"`
+	AddressID               *int    `json:"AddressID"`
+}
+
+// 日付等の処理
 type CreationDateItem struct {
 	CreationDate string `json:"CreationDate"`
 }
