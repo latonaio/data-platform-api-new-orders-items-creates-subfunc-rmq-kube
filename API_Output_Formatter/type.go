@@ -74,8 +74,8 @@ type Header struct {
 	InvoiceDocumentDate             *string  `json:"InvoiceDocumentDate"`
 	IsExportImportDelivery          *bool    `json:"IsExportImportDelivery"`
 	HeaderText                      *string  `json:"HeaderText"`
-	HeaderIsCancelled               *bool    `json:"HeaderIsCancelled"`
-	HeaderIsDeleted                 *bool    `json:"HeaderIsDeleted"`
+	IsCancelled                     *bool    `json:"IsCancelled"`
+	IsMarkedForDeletion             *bool    `json:"IsMarkedForDeletion"`
 }
 
 type Partner struct {
@@ -216,8 +216,8 @@ type Item struct {
 	ItemBlockStatus                               *bool    `json:"ItemBlockStatus"`
 	ItemDeliveryBlockStatus                       *bool    `json:"ItemDeliveryBlockStatus"`
 	ItemBillingBlockStatus                        *bool    `json:"ItemBillingBlockStatus"`
-	ItemIsCancelled                               *bool    `json:"ItemIsCancelled"`
-	ItemIsDeleted                                 *bool    `json:"ItemIsDeleted"`
+	IsCancelled                                   *bool    `json:"IsCancelled"`
+	IsMarkedForDeletion                           *bool    `json:"IsMarkedForDeletion"`
 }
 
 type ItemPricingElement struct {

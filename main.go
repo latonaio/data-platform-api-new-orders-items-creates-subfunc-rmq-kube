@@ -8,6 +8,7 @@ import (
 	"data-platform-api-orders-items-creates-subfunc-rmq-kube/config"
 	"data-platform-api-orders-items-creates-subfunc-rmq-kube/subfunction"
 	"fmt"
+	"time"
 
 	database "github.com/latonaio/golang-mysql-network-connector"
 
@@ -36,6 +37,7 @@ func main() {
 	}
 	defer rmq.Stop()
 	for msg := range iter {
+		start := time.Now()
 		msg.Success()
 		sdc, err := callProcess(ctx, db, rmq, msg, c)
 		sdc.SubfuncResult = getBoolPtr(err == nil)
@@ -48,6 +50,7 @@ func main() {
 		if err != nil {
 			l.Error(err)
 		}
+		l.Info("process time %v\n", time.Since(start).Milliseconds())
 	}
 }
 

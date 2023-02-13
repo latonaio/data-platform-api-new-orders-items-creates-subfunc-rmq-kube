@@ -125,23 +125,32 @@ func ConvertToItem(
 		item.ItemBlockStatus = getBoolPtr(false)
 		item.ItemDeliveryBlockStatus = getBoolPtr(false)
 		item.ItemBillingBlockStatus = getBoolPtr(false)
-		item.ItemIsCancelled = getBoolPtr(false)
-		item.ItemIsDeleted = getBoolPtr(false)
+		item.IsCancelled = getBoolPtr(false)
+		item.IsMarkedForDeletion = getBoolPtr(false)
 
 		if itemCategoryIsINVPMap[product].ItemCategoryIsINVP {
 			item.DeliverToPlantTimeZone = psdc.DeliverToPlantTimeZone[0].TimeZone
-			item.DeliverToPlantStorageLocation = &supplyChainRelationshipDeliveryPlantRelationProductMap[product].DeliverToPlantStorageLocation
-			item.ProductIsBatchManagedInDeliverToPlant = supplyChainRelationshipProductMasterBPPlantDeliverToMap[product].IsBatchManagementRequired
-			item.BatchMgmtPolicyInDeliverToPlant = supplyChainRelationshipProductMasterBPPlantDeliverToMap[product].BatchManagementPolicy
+			if _, ok := supplyChainRelationshipDeliveryPlantRelationProductMap[product]; ok {
+				item.DeliverToPlantStorageLocation = &supplyChainRelationshipDeliveryPlantRelationProductMap[product].DeliverToPlantStorageLocation
+				item.DeliverFromPlantStorageLocation = &supplyChainRelationshipDeliveryPlantRelationProductMap[product].DeliverFromPlantStorageLocation
+				item.DeliveryUnit = supplyChainRelationshipDeliveryPlantRelationProductMap[product].DeliveryUnit
+			}
+			if _, ok := supplyChainRelationshipProductMasterBPPlantDeliverToMap[product]; ok {
+				item.ProductIsBatchManagedInDeliverToPlant = supplyChainRelationshipProductMasterBPPlantDeliverToMap[product].IsBatchManagementRequired
+				item.BatchMgmtPolicyInDeliverToPlant = supplyChainRelationshipProductMasterBPPlantDeliverToMap[product].BatchManagementPolicy
+			}
 
 			item.DeliverFromPlantTimeZone = psdc.DeliverFromPlantTimeZone[0].TimeZone
-			item.DeliverFromPlantStorageLocation = &supplyChainRelationshipDeliveryPlantRelationProductMap[product].DeliverFromPlantStorageLocation
-			item.ProductIsBatchManagedInDeliverFromPlant = supplyChainRelationshipProductMasterBPPlantDeliverFromMap[product].IsBatchManagementRequired
-			item.BatchMgmtPolicyInDeliverFromPlant = supplyChainRelationshipProductMasterBPPlantDeliverFromMap[product].BatchManagementPolicy
+			if _, ok := supplyChainRelationshipProductMasterBPPlantDeliverFromMap[product]; ok {
+				item.ProductIsBatchManagedInDeliverFromPlant = supplyChainRelationshipProductMasterBPPlantDeliverFromMap[product].IsBatchManagementRequired
+				item.BatchMgmtPolicyInDeliverFromPlant = supplyChainRelationshipProductMasterBPPlantDeliverFromMap[product].BatchManagementPolicy
+			}
 
-			item.DeliveryUnit = supplyChainRelationshipDeliveryPlantRelationProductMap[product].DeliveryUnit
-			item.StockConfirmationBusinessPartner = &stockConfPlantRelationProductMap[product].StockConfirmationBusinessPartner
-			item.StockConfirmationPlant = &stockConfPlantRelationProductMap[product].StockConfirmationPlant
+			if _, ok := stockConfPlantRelationProductMap[product]; ok {
+				item.StockConfirmationBusinessPartner = &stockConfPlantRelationProductMap[product].StockConfirmationBusinessPartner
+				item.StockConfirmationPlant = &stockConfPlantRelationProductMap[product].StockConfirmationPlant
+			}
+
 			for _, v := range psdc.StockConfirmationPlantTimeZone {
 				if v.BusinessPartner == *item.StockConfirmationBusinessPartner && v.Plant == *item.StockConfirmationPlant {
 					item.StockConfirmationPlantTimeZone = v.TimeZone
@@ -149,22 +158,31 @@ func ConvertToItem(
 				}
 			}
 
-			item.ConfirmedOrderQuantityInBaseUnit = &confirmedOrderQuantityInBaseUnitMap[item.OrderItem].ConfirmedOrderQuantityInBaseUnit
+			if _, ok := confirmedOrderQuantityInBaseUnitMap[item.OrderItem]; ok {
+				item.ConfirmedOrderQuantityInBaseUnit = &confirmedOrderQuantityInBaseUnitMap[item.OrderItem].ConfirmedOrderQuantityInBaseUnit
+			}
 
-			item.ProductIsBatchManagedInStockConfirmationPlant = stockConfPlantProductMasterBPPlantMap[product].IsBatchManagementRequired
-			item.BatchMgmtPolicyInStockConfirmationPlant = stockConfPlantProductMasterBPPlantMap[product].BatchManagementPolicy
+			if _, ok := stockConfPlantProductMasterBPPlantMap[product]; ok {
+				item.ProductIsBatchManagedInStockConfirmationPlant = stockConfPlantProductMasterBPPlantMap[product].IsBatchManagementRequired
+				item.BatchMgmtPolicyInStockConfirmationPlant = stockConfPlantProductMasterBPPlantMap[product].BatchManagementPolicy
+			}
 
-			item.ProductionPlantBusinessPartner = &productionPlantRelationProductMap[product].ProductionPlantBusinessPartner
-			item.ProductionPlant = &productionPlantRelationProductMap[product].ProductionPlant
+			if _, ok := productionPlantRelationProductMap[product]; ok {
+				item.ProductionPlantBusinessPartner = &productionPlantRelationProductMap[product].ProductionPlantBusinessPartner
+				item.ProductionPlant = &productionPlantRelationProductMap[product].ProductionPlant
+				item.ProductionPlantStorageLocation = productionPlantRelationProductMap[product].ProductionPlantStorageLocation
+			}
 			for _, v := range psdc.ProductionPlantTimeZone {
 				if v.BusinessPartner == *item.ProductionPlantBusinessPartner && v.Plant == *item.ProductionPlant {
 					item.ProductionPlantTimeZone = v.TimeZone
 					break
 				}
 			}
-			item.ProductionPlantStorageLocation = productionPlantRelationProductMap[product].ProductionPlantStorageLocation
-			item.ProductIsBatchManagedInProductionPlant = productionPlantProductMasterBPPlantMap[product].IsBatchManagementRequired
-			item.BatchMgmtPolicyInProductionPlant = productionPlantProductMasterBPPlantMap[product].BatchManagementPolicy
+
+			if _, ok := productionPlantProductMasterBPPlantMap[product]; ok {
+				item.ProductIsBatchManagedInProductionPlant = productionPlantProductMasterBPPlantMap[product].IsBatchManagementRequired
+				item.BatchMgmtPolicyInProductionPlant = productionPlantProductMasterBPPlantMap[product].BatchManagementPolicy
+			}
 		}
 
 		res = append(res, item)
@@ -200,18 +218,18 @@ func ConvertToItemPricingElement(
 
 		inputItemPricingElement := item.ItemPricingElement[0]
 
-		idx := -1
+		pricingProcedureCounterIdx := -1
 		for i, v := range psdc.PricingProcedureCounter {
 			if v.Product == product && v.SupplyChainRelationshipID == supplyChainRelationshipID {
-				idx = i
+				pricingProcedureCounterIdx = i
 			}
 		}
-		if idx == -1 {
+		if pricingProcedureCounterIdx == -1 {
 			continue
 		}
 
 		conditionTypeIsMWST := false
-		for j := range psdc.PricingProcedureCounter[idx].PricingProcedureCounter {
+		for j := range psdc.PricingProcedureCounter[pricingProcedureCounterIdx].PricingProcedureCounter {
 			itemPricingElement := &ItemPricingElement{}
 
 			// 入力ファイル
@@ -222,7 +240,7 @@ func ConvertToItemPricingElement(
 
 			itemPricingElement.OrderID = psdc.CalculateOrderID.OrderID
 			itemPricingElement.OrderItem = psdc.OrderItem[i].OrderItemNumber
-			itemPricingElement.PricingProcedureCounter = psdc.PricingProcedureCounter[idx].PricingProcedureCounter[j]
+			itemPricingElement.PricingProcedureCounter = psdc.PricingProcedureCounter[pricingProcedureCounterIdx].PricingProcedureCounter[j]
 			itemPricingElement.PricingDate = &psdc.ItemPricingDate[i].PricingDate
 			itemPricingElement.ConditionCurrency = psdc.SupplyChainRelationshipTransaction[0].TransactionCurrency
 			itemPricingElement.ConditionQuantityUnit = item.BaseUnit
@@ -246,7 +264,7 @@ func ConvertToItemPricingElement(
 
 			if !conditionTypeIsMWST {
 				for _, v := range psdc.ConditionRateValue {
-					if v.Product == psdc.PricingProcedureCounter[idx].Product && v.SupplyChainRelationshipID == psdc.PricingProcedureCounter[idx].SupplyChainRelationshipID {
+					if v.Product == psdc.PricingProcedureCounter[pricingProcedureCounterIdx].Product && v.SupplyChainRelationshipID == psdc.PricingProcedureCounter[pricingProcedureCounterIdx].SupplyChainRelationshipID {
 						conditionTypeIsMWST = true
 						break
 					}
@@ -258,13 +276,14 @@ func ConvertToItemPricingElement(
 
 		// 200-3-2. Orders Item Pricing Elementデータの整列とセット(ConditionTypeが“MWST“の明細)
 		if conditionTypeIsMWST {
-			idx := -1
+			conditionRateValueIdx := -1
 			for i, v := range psdc.ConditionRateValue {
 				if v.Product == product && v.SupplyChainRelationshipID == supplyChainRelationshipID {
-					idx = i
+					conditionRateValueIdx = i
+					break
 				}
 			}
-			if idx == -1 {
+			if conditionRateValueIdx == -1 {
 				continue
 			}
 
@@ -278,7 +297,7 @@ func ConvertToItemPricingElement(
 
 			itemPricingElement.OrderID = psdc.CalculateOrderID.OrderID
 			itemPricingElement.OrderItem = psdc.OrderItem[i].OrderItemNumber
-			itemPricingElement.PricingProcedureCounter = len(psdc.PricingProcedureCounter[idx].PricingProcedureCounter) + 1
+			itemPricingElement.PricingProcedureCounter = len(psdc.PricingProcedureCounter[pricingProcedureCounterIdx].PricingProcedureCounter) + 1
 			itemPricingElement.PricingDate = &psdc.ItemPricingDate[i].PricingDate
 			itemPricingElement.ConditionCurrency = psdc.SupplyChainRelationshipTransaction[0].TransactionCurrency
 			itemPricingElement.TaxCode = taxCodeMap[product].TaxCode
@@ -291,10 +310,10 @@ func ConvertToItemPricingElement(
 				itemPricingElement.ConditionRecord = &priceMasterMap[product].ConditionRecord
 				itemPricingElement.ConditionSequentialNumber = getIntPtr(maxConditionSequentialNumber(psdc) + 1)
 				itemPricingElement.ConditionType = getStringPtr("MWST")
-				itemPricingElement.ConditionRateValue = psdc.ConditionRateValue[idx].ConditionRateValue
+				itemPricingElement.ConditionRateValue = psdc.ConditionRateValue[conditionRateValueIdx].ConditionRateValue
 				itemPricingElement.ConditionQuantity = conditionAmountMap[product].ConditionQuantity
-				itemPricingElement.ConditionAmount = psdc.ConditionRateValue[idx].ConditionAmount
-				itemPricingElement.ConditionIsManuallyChanged = psdc.ConditionRateValue[idx].ConditionIsManuallyChanged
+				itemPricingElement.ConditionAmount = psdc.ConditionRateValue[conditionRateValueIdx].ConditionAmount
+				itemPricingElement.ConditionIsManuallyChanged = psdc.ConditionRateValue[conditionRateValueIdx].ConditionIsManuallyChanged
 			} else {
 				itemPricingElement.ConditionIsManuallyChanged = conditionIsManuallyChangedMap[product].ConditionIsManuallyChanged
 			}

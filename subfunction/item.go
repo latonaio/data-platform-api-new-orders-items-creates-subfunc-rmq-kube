@@ -918,24 +918,21 @@ func (f *SubFunction) OrdinaryStockConfirmation(
 
 	dataKey := psdc.ConvertToOrdinaryStockConfirmationKey(length)
 
-	stockConfPlantProductMasterBPPlantMap := StructArrayToMap(psdc.StockConfPlantProductMasterBPPlant, "Product")
+	inputItemMap := StructArrayToMap(sdc.Header.Item, "Product")
 
 	idx := 0
-	for _, v := range sdc.Header.Item {
-		if v.Product == nil || v.RequestedDeliveryDate == nil {
+	for _, v := range psdc.StockConfPlantProductMasterBPPlant {
+		if _, ok := inputItemMap[v.Product]; !ok {
 			continue
 		}
-		if _, ok := stockConfPlantProductMasterBPPlantMap[*v.Product]; !ok {
+		if v.IsBatchManagementRequired == nil {
 			continue
 		}
-		if stockConfPlantProductMasterBPPlantMap[*v.Product].IsBatchManagementRequired == nil {
-			continue
-		}
-		if !*stockConfPlantProductMasterBPPlantMap[*v.Product].IsBatchManagementRequired {
-			dataKey[idx].Product = *v.Product
-			dataKey[idx].StockConfirmationBusinessPartner = stockConfPlantProductMasterBPPlantMap[*v.Product].BusinessPartner
-			dataKey[idx].StockConfirmationPlant = stockConfPlantProductMasterBPPlantMap[*v.Product].Plant
-			dataKey[idx].RequestedDeliveryDate = *v.RequestedDeliveryDate
+		if !*v.IsBatchManagementRequired {
+			dataKey[idx].Product = v.Product
+			dataKey[idx].StockConfirmationBusinessPartner = v.BusinessPartner
+			dataKey[idx].StockConfirmationPlant = v.Plant
+			dataKey[idx].RequestedDeliveryDate = *inputItemMap[v.Product].RequestedDeliveryDate
 			idx++
 		}
 	}
