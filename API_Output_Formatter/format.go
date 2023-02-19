@@ -40,7 +40,7 @@ func ConvertToItem(
 	grossAmountMap := StructArrayToMap(psdc.GrossAmount, "Product")
 	orderQuantityInDeliveryUnitMap := StructArrayToMap(psdc.OrderQuantityInDeliveryUnit, "OrderItem")
 
-	res := make([]*Item, 0, len(sdc.Header.Item))
+	items := make([]*Item, 0, len(sdc.Header.Item))
 	for i, v := range sdc.Header.Item {
 		item := &Item{}
 		inputItem := sdc.Header.Item[i]
@@ -185,10 +185,10 @@ func ConvertToItem(
 			}
 		}
 
-		res = append(res, item)
+		items = append(items, item)
 	}
 
-	return res, nil
+	return items, nil
 }
 
 func ConvertToItemPricingElement(
@@ -207,7 +207,7 @@ func ConvertToItemPricingElement(
 		length += len(v.ItemPricingElement)
 	}
 
-	res := make([]*ItemPricingElement, 0, length)
+	itemPricingElements := make([]*ItemPricingElement, 0, length)
 	for i, item := range sdc.Header.Item {
 		if item.Product == nil {
 			continue
@@ -271,7 +271,7 @@ func ConvertToItemPricingElement(
 				}
 			}
 
-			res = append(res, itemPricingElement)
+			itemPricingElements = append(itemPricingElements, itemPricingElement)
 		}
 
 		// 200-3-2. Orders Item Pricing Elementデータの整列とセット(ConditionTypeが“MWST“の明細)
@@ -317,12 +317,12 @@ func ConvertToItemPricingElement(
 			} else {
 				itemPricingElement.ConditionIsManuallyChanged = conditionIsManuallyChangedMap[product].ConditionIsManuallyChanged
 			}
-			res = append(res, itemPricingElement)
+			itemPricingElements = append(itemPricingElements, itemPricingElement)
 		}
 
 	}
 
-	return res, nil
+	return itemPricingElements, nil
 }
 
 func ConvertToItemScheduleLine(
@@ -338,7 +338,7 @@ func ConvertToItemScheduleLine(
 		length += len(v.ItemScheduleLine)
 	}
 
-	res := make([]*ItemScheduleLine, 0, length)
+	itemScheduleLines := make([]*ItemScheduleLine, 0, length)
 	for _, item := range sdc.Header.Item {
 		for j := range item.ItemScheduleLine {
 			if _, ok := ordersItemScheduleLineMap[*item.Product]; !ok {
@@ -381,11 +381,11 @@ func ConvertToItemScheduleLine(
 			itemScheduleLine.PlusMinusFlag = ordersItemScheduleLineMap[product].PlusMinusFlag
 			itemScheduleLine.ItemScheduleLineDeliveryBlockStatus = ordersItemScheduleLineMap[product].ItemScheduleLineDeliveryBlockStatus
 
-			res = append(res, itemScheduleLine)
+			itemScheduleLines = append(itemScheduleLines, itemScheduleLine)
 		}
 	}
 
-	return res, nil
+	return itemScheduleLines, nil
 }
 
 func ConvertToPartner(
@@ -394,7 +394,7 @@ func ConvertToPartner(
 ) ([]*Partner, error) {
 	var err error
 
-	res := make([]*Partner, 0, len(psdc.Partner))
+	partners := make([]*Partner, 0, len(psdc.Partner))
 	for _, v := range psdc.Partner {
 		partner := &Partner{}
 		inputPartner := sdc.Header.Partner[0]
@@ -415,10 +415,10 @@ func ConvertToPartner(
 		partner.Currency = v.Currency
 		partner.AddressID = v.AddressID
 
-		res = append(res, partner)
+		partners = append(partners, partner)
 	}
 
-	return res, nil
+	return partners, nil
 }
 
 func ConvertToAddress(
@@ -427,7 +427,7 @@ func ConvertToAddress(
 ) ([]*Address, error) {
 	var err error
 
-	res := make([]*Address, 0, len(psdc.Address))
+	addresses := make([]*Address, 0, len(psdc.Address))
 	for _, v := range psdc.Address {
 		address := &Address{}
 		inputAddress := sdc.Header.Address[0]
@@ -450,10 +450,10 @@ func ConvertToAddress(
 		address.Floor = v.Floor
 		address.Room = v.Room
 
-		res = append(res, address)
+		addresses = append(addresses, address)
 	}
 
-	return res, nil
+	return addresses, nil
 }
 
 func maxConditionSequentialNumber(psdc *api_processing_data_formatter.SDC) int {

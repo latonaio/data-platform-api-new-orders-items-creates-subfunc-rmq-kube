@@ -81,28 +81,44 @@ func (f *SubFunction) AddressFromInput(
 ) ([]*api_processing_data_formatter.Address, error) {
 	processFlag := false
 
-	for _, v := range sdc.Header.Address {
-		if v.PostalCode != nil || v.LocalRegion != nil || v.Country != nil || v.District != nil || v.StreetName != nil || v.CityName != nil {
-			if len(*v.PostalCode) != 0 || len(*v.LocalRegion) != 0 || len(*v.Country) != 0 || len(*v.District) != 0 || len(*v.StreetName) != 0 || len(*v.CityName) != 0 {
-				processFlag = true
-			}
-		}
-	}
-
-	if !processFlag {
-		return psdc.Address, nil
-	}
-
 	calculateAddressID, err := f.CalculateAddressID(sdc, psdc)
 	if err != nil {
 		return nil, err
 	}
 
-	data := psdc.ConvertToAddressFromInput(sdc, calculateAddressID.AddressID)
+	addressMasterdata := make([]*api_processing_data_formatter.AddressMaster, 0)
+	addressID := calculateAddressID.AddressID
+	for i, v := range sdc.Header.Address {
+		if v.PostalCode != nil || v.LocalRegion != nil || v.Country != nil || v.District != nil || v.StreetName != nil || v.CityName != nil {
+			if len(*v.PostalCode) != 0 || len(*v.LocalRegion) != 0 || len(*v.Country) != 0 || len(*v.District) != 0 || len(*v.StreetName) != 0 || len(*v.CityName) != 0 {
+				processFlag = true
+				datum := psdc.ConvertToAddressMaster(sdc, i, addressID)
+				addressMasterdata = append(addressMasterdata, datum)
+				addressID += 1
+			}
+		}
+	}
+	psdc.AddressMaster = addressMasterdata
+
+	if !processFlag {
+		return psdc.Address, nil
+	}
+
+	sessionID := sdc.RuntimeSessionID
+	for _, addressData := range addressMasterdata {
+		res, err := f.rmq.SessionKeepRequest(f.ctx, f.conf.RMQ.QueueToSQL(), map[string]interface{}{"message": addressData, "function": "Address", "runtime_session_id": sessionID})
+		if err != nil {
+			err = xerrors.Errorf("rmq error: %w", err)
+			f.l.Error(err)
+			return []*api_processing_data_formatter.Address{}, nil
+		}
+		res.Success()
+	}
+
+	data := psdc.ConvertToAddressFromInput()
 
 	return data, err
 }
-
 func (f *SubFunction) CalculateAddressID(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,

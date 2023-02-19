@@ -5,6 +5,7 @@ import (
 	api_input_reader "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Input_Reader"
 	dpfm_api_output_formatter "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Output_Formatter"
 	api_processing_data_formatter "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
+	"data-platform-api-orders-items-creates-subfunc-rmq-kube/config"
 	"sync"
 
 	"github.com/latonaio/golang-logging-library-for-data-platform/logger"
@@ -13,18 +14,20 @@ import (
 )
 
 type SubFunction struct {
-	ctx context.Context
-	db  *database.Mysql
-	rmq *rabbitmq.RabbitmqClient
-	l   *logger.Logger
+	ctx  context.Context
+	db   *database.Mysql
+	conf *config.Conf
+	rmq  *rabbitmq.RabbitmqClient
+	l    *logger.Logger
 }
 
-func NewSubFunction(ctx context.Context, db *database.Mysql, rmq *rabbitmq.RabbitmqClient, l *logger.Logger) *SubFunction {
+func NewSubFunction(ctx context.Context, db *database.Mysql, conf *config.Conf, rmq *rabbitmq.RabbitmqClient, l *logger.Logger) *SubFunction {
 	return &SubFunction{
-		ctx: ctx,
-		db:  db,
-		rmq: rmq,
-		l:   l,
+		ctx:  ctx,
+		db:   db,
+		conf: conf,
+		rmq:  rmq,
+		l:    l,
 	}
 }
 

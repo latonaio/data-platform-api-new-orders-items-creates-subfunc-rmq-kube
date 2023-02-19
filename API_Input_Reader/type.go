@@ -30,8 +30,8 @@ type Header struct {
 	CreationDate                    *string   `json:"CreationDate"`
 	LastChangeDate                  *string   `json:"LastChangeDate"`
 	ContractType                    *string   `json:"ContractType"`
-	ValidityStartDate               *string   `json:"ValidityStartDate"`
-	ValidityEndDate                 *string   `json:"ValidityEndDate"`
+	OrderValidityStartDate          *string   `json:"OrderValidityStartDate"`
+	OrderValidityEndDate            *string   `json:"OrderValidityEndDate"`
 	InvoicePeriodStartDate          *string   `json:"InvoicePeriodStartDate"`
 	InvoicePeriodEndDate            *string   `json:"InvoicePeriodEndDate"`
 	TotalNetAmount                  *float32  `json:"TotalNetAmount"`

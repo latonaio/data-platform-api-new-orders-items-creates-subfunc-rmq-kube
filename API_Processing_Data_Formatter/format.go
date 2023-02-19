@@ -1811,36 +1811,74 @@ func (psdc *SDC) ConvertToAddress(rows *sql.Rows) ([]*Address, error) {
 	return res, nil
 }
 
-func (psdc *SDC) ConvertToAddressFromInput(sdc *api_input_reader.SDC, addressID int) []*Address {
-	res := make([]*Address, 0)
-	pm := &requests.Address{
-		PostalCode:  *sdc.Header.Address[0].PostalCode,
-		LocalRegion: *sdc.Header.Address[0].LocalRegion,
-		Country:     *sdc.Header.Address[0].Country,
-		District:    sdc.Header.Address[0].District,
-		StreetName:  *sdc.Header.Address[0].StreetName,
-		CityName:    *sdc.Header.Address[0].CityName,
-		Building:    sdc.Header.Address[0].Building,
-		Floor:       sdc.Header.Address[0].Floor,
-		Room:        sdc.Header.Address[0].Room,
+func (psdc *SDC) ConvertToAddressMaster(sdc *api_input_reader.SDC, idx, addressID int) *AddressMaster {
+	pm := &requests.AddressMaster{
+		ValidityStartDate: *sdc.Header.OrderValidityStartDate,
+		ValidityEndDate:   *sdc.Header.OrderValidityEndDate,
+		PostalCode:        *sdc.Header.Address[idx].PostalCode,
+		LocalRegion:       *sdc.Header.Address[idx].LocalRegion,
+		Country:           *sdc.Header.Address[idx].Country,
+		District:          sdc.Header.Address[idx].District,
+		StreetName:        *sdc.Header.Address[idx].StreetName,
+		CityName:          *sdc.Header.Address[idx].CityName,
+		Building:          sdc.Header.Address[idx].Building,
+		Floor:             sdc.Header.Address[idx].Floor,
+		Room:              sdc.Header.Address[idx].Room,
 	}
 
 	pm.AddressID = addressID
 
 	data := pm
-	res = append(res, &Address{
-		AddressID:       data.AddressID,
-		ValidityEndDate: data.ValidityEndDate,
-		PostalCode:      data.PostalCode,
-		LocalRegion:     data.LocalRegion,
-		Country:         data.Country,
-		District:        data.District,
-		StreetName:      data.StreetName,
-		CityName:        data.CityName,
-		Building:        data.Building,
-		Floor:           data.Floor,
-		Room:            data.Room,
-	})
+	res := &AddressMaster{
+		AddressID:         data.AddressID,
+		ValidityEndDate:   data.ValidityEndDate,
+		ValidityStartDate: data.ValidityStartDate,
+		PostalCode:        data.PostalCode,
+		LocalRegion:       data.LocalRegion,
+		Country:           data.Country,
+		District:          data.District,
+		StreetName:        data.StreetName,
+		CityName:          data.CityName,
+		Building:          data.Building,
+		Floor:             data.Floor,
+		Room:              data.Room,
+	}
+
+	return res
+}
+
+func (psdc *SDC) ConvertToAddressFromInput() []*Address {
+	res := make([]*Address, 0)
+
+	for _, v := range psdc.AddressMaster {
+		pm := &requests.Address{}
+
+		pm.AddressID = v.AddressID
+		pm.PostalCode = v.PostalCode
+		pm.LocalRegion = v.LocalRegion
+		pm.Country = v.Country
+		pm.District = v.District
+		pm.StreetName = v.StreetName
+		pm.CityName = v.CityName
+		pm.Building = v.Building
+		pm.Floor = v.Floor
+		pm.Room = v.Room
+
+		data := pm
+		res = append(res, &Address{
+			AddressID:   data.AddressID,
+			PostalCode:  data.PostalCode,
+			LocalRegion: data.LocalRegion,
+			Country:     data.Country,
+			District:    data.District,
+			StreetName:  data.StreetName,
+			CityName:    data.CityName,
+			Building:    data.Building,
+			Floor:       data.Floor,
+			Room:        data.Room,
+		})
+
+	}
 
 	return res
 }

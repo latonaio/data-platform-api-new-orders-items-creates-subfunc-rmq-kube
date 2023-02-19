@@ -10,7 +10,7 @@
   "message": {
     "Item": [
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "OrderItem": 1,
         "OrderItemCategory": "INVP",
         "SupplyChainRelationshipID": 100000000,
@@ -25,13 +25,13 @@
         "ProductStandardID": "4901750404857",
         "ProductGroup": "01",
         "BaseUnit": "PC",
-        "PricingDate": "2023-02-11",
+        "PricingDate": "2023-02-15",
         "PriceDetnExchangeRate": 0.0073,
-        "RequestedDeliveryDate": "2022-10-01",
+        "RequestedDeliveryDate": "2023-02-14",
         "DeliverToParty": 102,
         "DeliverFromParty": 201,
-        "CreationDate": "2023-02-11",
-        "LastChangeDate": "2023-02-11",
+        "CreationDate": "2023-02-15",
+        "LastChangeDate": "2023-02-15",
         "DeliverToPlant": "AB02",
         "DeliverToPlantTimeZone": "JST",
         "DeliverToPlantStorageLocation": "0001",
@@ -79,7 +79,7 @@
         "NetAmount": 200000,
         "TaxAmount": 20000,
         "GrossAmount": 220000,
-        "InvoiceDocumentDate": "2022-12-31",
+        "InvoiceDocumentDate": "2023-02-28",
         "ProductionPlantBusinessPartner": 201,
         "ProductionPlant": "TE01",
         "ProductionPlantTimeZone": "JST",
@@ -123,7 +123,7 @@
         "IsMarkedForDeletion": false
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "OrderItem": 2,
         "OrderItemCategory": "INVP",
         "SupplyChainRelationshipID": 100000000,
@@ -138,18 +138,18 @@
         "ProductStandardID": "4903110345145",
         "ProductGroup": "02",
         "BaseUnit": "PC",
-        "PricingDate": "2023-02-11",
+        "PricingDate": "2023-02-15",
         "PriceDetnExchangeRate": 0.0073,
-        "RequestedDeliveryDate": "2022-10-01",
+        "RequestedDeliveryDate": "2023-02-14",
         "DeliverToParty": 102,
         "DeliverFromParty": 201,
-        "CreationDate": "2023-02-11",
-        "LastChangeDate": "2023-02-11",
+        "CreationDate": "2023-02-15",
+        "LastChangeDate": "2023-02-15",
         "DeliverToPlant": "AB02",
         "DeliverToPlantTimeZone": "JST",
-        "DeliverToPlantStorageLocation": null,
-        "ProductIsBatchManagedInDeliverToPlant": null,
-        "BatchMgmtPolicyInDeliverToPlant": null,
+        "DeliverToPlantStorageLocation": "0001",
+        "ProductIsBatchManagedInDeliverToPlant": false,
+        "BatchMgmtPolicyInDeliverToPlant": "0001",
         "DeliverToPlantBatch": "B001",
         "DeliverToPlantBatchValidityStartDate": "2000-01-01",
         "DeliverToPlantBatchValidityStartTime": "00:00:00",
@@ -157,9 +157,9 @@
         "DeliverToPlantBatchValidityEndTime": "23:59:59",
         "DeliverFromPlant": "TE01",
         "DeliverFromPlantTimeZone": "JST",
-        "DeliverFromPlantStorageLocation": null,
-        "ProductIsBatchManagedInDeliverFromPlant": null,
-        "BatchMgmtPolicyInDeliverFromPlant": null,
+        "DeliverFromPlantStorageLocation": "0002",
+        "ProductIsBatchManagedInDeliverFromPlant": false,
+        "BatchMgmtPolicyInDeliverFromPlant": "0001",
         "DeliverFromPlantBatch": "B002",
         "DeliverFromPlantBatchValidityStartDate": "2000-01-01",
         "DeliverFromPlantBatchValidityStartTime": "00:00:00",
@@ -192,7 +192,7 @@
         "NetAmount": 400000,
         "TaxAmount": 40000,
         "GrossAmount": 440000,
-        "InvoiceDocumentDate": "2022-12-31",
+        "InvoiceDocumentDate": "2023-02-28",
         "ProductionPlantBusinessPartner": 201,
         "ProductionPlant": "TE01",
         "ProductionPlantTimeZone": "JST",
@@ -238,7 +238,7 @@
     ],
     "ItemPricingElement": [
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "OrderItem": 1,
         "SupplyChainRelationshipID": 100000000,
         "Buyer": 101,
@@ -247,7 +247,7 @@
         "ConditionRecord": 652,
         "ConditionSequentialNumber": 0,
         "ConditionType": "PR00",
-        "PricingDate": "2023-02-11",
+        "PricingDate": "2023-02-15",
         "ConditionRateValue": 10000,
         "ConditionCurrency": "JPY",
         "ConditionQuantity": 20,
@@ -258,7 +258,7 @@
         "ConditionIsManuallyChanged": false
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "OrderItem": 1,
         "SupplyChainRelationshipID": 100000000,
         "Buyer": 101,
@@ -267,7 +267,7 @@
         "ConditionRecord": 652,
         "ConditionSequentialNumber": 1,
         "ConditionType": "MWST",
-        "PricingDate": "2023-02-11",
+        "PricingDate": "2023-02-15",
         "ConditionRateValue": 1000,
         "ConditionCurrency": "JPY",
         "ConditionQuantity": 20,
@@ -278,7 +278,7 @@
         "ConditionIsManuallyChanged": false
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "OrderItem": 2,
         "SupplyChainRelationshipID": 100000000,
         "Buyer": 101,
@@ -287,7 +287,7 @@
         "ConditionRecord": 584,
         "ConditionSequentialNumber": 0,
         "ConditionType": "RC00",
-        "PricingDate": "2023-02-11",
+        "PricingDate": "2023-02-15",
         "ConditionRateValue": 20000,
         "ConditionCurrency": "JPY",
         "ConditionQuantity": 20,
@@ -298,7 +298,7 @@
         "ConditionIsManuallyChanged": false
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "OrderItem": 2,
         "SupplyChainRelationshipID": 100000000,
         "Buyer": 101,
@@ -307,7 +307,7 @@
         "ConditionRecord": 584,
         "ConditionSequentialNumber": 1,
         "ConditionType": "MWST",
-        "PricingDate": "2023-02-11",
+        "PricingDate": "2023-02-15",
         "ConditionRateValue": 2000,
         "ConditionCurrency": "JPY",
         "ConditionQuantity": 20,
@@ -320,7 +320,7 @@
     ],
     "ItemScheduleLine": [
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "OrderItem": 1,
         "ScheduleLine": 1,
         "SupplyChainRelationshipID": 100000000,
@@ -332,8 +332,8 @@
         "StockConfirmationPlantBatch": "",
         "StockConfirmationPlantBatchValidityStartDate": null,
         "StockConfirmationPlantBatchValidityEndDate": null,
-        "RequestedDeliveryDate": "2022-10-01",
-        "ConfirmedDeliveryDate": "2023-02-11",
+        "RequestedDeliveryDate": "2023-02-15",
+        "ConfirmedDeliveryDate": "2023-02-15",
         "OrderQuantityInBaseUnit": 20,
         "ConfirmedOrderQuantityByPDTAvailCheck": 13,
         "DeliveredQuantityInBaseUnit": null,
@@ -343,7 +343,7 @@
         "ItemScheduleLineDeliveryBlockStatus": false
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "OrderItem": 2,
         "ScheduleLine": 2,
         "SupplyChainRelationshipID": 100000000,
@@ -355,8 +355,8 @@
         "StockConfirmationPlantBatch": "",
         "StockConfirmationPlantBatchValidityStartDate": null,
         "StockConfirmationPlantBatchValidityEndDate": null,
-        "RequestedDeliveryDate": "2022-10-01",
-        "ConfirmedDeliveryDate": "2023-02-11",
+        "RequestedDeliveryDate": "2023-02-14",
+        "ConfirmedDeliveryDate": "2023-02-14",
         "OrderQuantityInBaseUnit": 20,
         "ConfirmedOrderQuantityByPDTAvailCheck": 8,
         "DeliveredQuantityInBaseUnit": null,
@@ -368,7 +368,7 @@
     ],
     "Partner": [
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "BUYER",
         "BusinessPartner": 101,
         "BusinessPartnerFullName": "株式会社ローソン本社",
@@ -381,7 +381,7 @@
         "AddressID": 700010001
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "SELLER",
         "BusinessPartner": 201,
         "BusinessPartnerFullName": "山崎製パン株式会社",
@@ -394,7 +394,7 @@
         "AddressID": 700020001
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "DELIVER_TO",
         "BusinessPartner": 102,
         "BusinessPartnerFullName": "株式会社ローソン虎ノ門店",
@@ -407,7 +407,7 @@
         "AddressID": 700010002
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "DELIVER_FROM",
         "BusinessPartner": 201,
         "BusinessPartnerFullName": "山崎製パン株式会社",
@@ -420,7 +420,7 @@
         "AddressID": 700020001
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "BILL_TO",
         "BusinessPartner": 101,
         "BusinessPartnerFullName": "株式会社ローソン本社",
@@ -433,7 +433,7 @@
         "AddressID": 700010001
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "BILL_TO",
         "BusinessPartner": 102,
         "BusinessPartnerFullName": "株式会社ローソン虎ノ門店",
@@ -446,7 +446,7 @@
         "AddressID": 700010002
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "BILL_FROM",
         "BusinessPartner": 201,
         "BusinessPartnerFullName": "山崎製パン株式会社",
@@ -459,7 +459,7 @@
         "AddressID": 700020001
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "PAYER",
         "BusinessPartner": 101,
         "BusinessPartnerFullName": "株式会社ローソン本社",
@@ -472,7 +472,7 @@
         "AddressID": 700010001
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "PAYEE",
         "BusinessPartner": 201,
         "BusinessPartnerFullName": "山崎製パン株式会社",
@@ -485,7 +485,7 @@
         "AddressID": 700020001
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "STOCK_CONFIRMATION",
         "BusinessPartner": 101,
         "BusinessPartnerFullName": "株式会社ローソン本社",
@@ -498,7 +498,7 @@
         "AddressID": 700010001
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "STOCK_CONFIRMATION",
         "BusinessPartner": 102,
         "BusinessPartnerFullName": "株式会社ローソン虎ノ門店",
@@ -511,7 +511,7 @@
         "AddressID": 700010002
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "PartnerFunction": "MANUFACTURER",
         "BusinessPartner": 201,
         "BusinessPartnerFullName": "山崎製パン株式会社",
@@ -526,7 +526,7 @@
     ],
     "Address": [
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "AddressID": 700010001,
         "PostalCode": "141-8643",
         "LocalRegion": "13",
@@ -539,7 +539,7 @@
         "Room": null
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "AddressID": 700010002,
         "PostalCode": "105-0001",
         "LocalRegion": "13",
@@ -552,7 +552,7 @@
         "Room": null
       },
       {
-        "OrderID": 24,
+        "OrderID": 16,
         "AddressID": 700020001,
         "PostalCode": "101-8585",
         "LocalRegion": "13",
