@@ -35,6 +35,9 @@ func (f *SubFunction) ProductTaxClassificationBillToCountry(
 
 	dataKey.Country = psdc.SupplyChainRelationshipBillingRelation[0].BillToCountry
 
+	if len(dataKey.Product) == 0 {
+		return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
+	}
 	repeat := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
@@ -74,6 +77,9 @@ func (f *SubFunction) ProductTaxClassificationBillFromCountry(
 
 	dataKey.Country = psdc.SupplyChainRelationshipBillingRelation[0].BillFromCountry
 
+	if len(dataKey.Product) == 0 {
+		return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
+	}
 	repeat := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
@@ -154,6 +160,9 @@ func (f *SubFunction) ProductMasterGeneral(
 	}
 	dataKey.ValidityStartDate = getSystemDate()
 
+	if len(dataKey.Product) == 0 {
+		return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
+	}
 	repeat := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
@@ -189,10 +198,16 @@ func (f *SubFunction) OrderItemText(
 	dataKey := psdc.ConvertToOrderItemTextKey(len(sdc.Header.Item))
 
 	for i := range psdc.ProductMasterGeneral {
+		if psdc.ProductMasterGeneral[i].CountryOfOriginLanguage == nil {
+			return nil, xerrors.Errorf("psdc.ProductMasterGeneralの'CountryOfOriginLanguage'がありません。")
+		}
 		dataKey[i].Product = psdc.ProductMasterGeneral[i].Product
 		dataKey[i].Language = *psdc.ProductMasterGeneral[i].CountryOfOriginLanguage
 	}
 
+	if len(dataKey) == 0 {
+		return nil, xerrors.Errorf("入力ファイルの'Item'がありません。")
+	}
 	repeat := strings.Repeat("(?, ?),", len(dataKey)-1) + "(?, ?)"
 	for _, v := range dataKey {
 		args = append(args, v.Product, v.Language)
@@ -246,11 +261,17 @@ func (f *SubFunction) StockConfPlantRelationProduct(
 		}
 	}
 
+	if len(dataKey.SupplyChainRelationshipID) == 0 {
+		return nil, xerrors.Errorf("psdc.SupplyChainRelationshipGeneralの'SupplyChainRelationshipID'がありません。")
+	}
 	repeat1 := strings.Repeat("(?,?,?),", len(dataKey.SupplyChainRelationshipID)-1) + "(?,?,?)"
 	for i := range dataKey.SupplyChainRelationshipID {
 		args = append(args, dataKey.SupplyChainRelationshipID[i], dataKey.Buyer[i], dataKey.Seller[i])
 	}
 
+	if len(dataKey.Product) == 0 {
+		return nil, xerrors.Errorf("psdc.ProductMasterGeneralの'Product'がありません。")
+	}
 	repeat2 := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
@@ -292,6 +313,9 @@ func (f *SubFunction) StockConfPlantProductMasterBPPlant(
 		dataKey[i].Plant = stockConfPlantRelationProduct[i].StockConfirmationPlant
 	}
 
+	if len(dataKey) == 0 {
+		return nil, xerrors.Errorf("psdc.StockConfPlantRelationProductの'stockConfPlantRelationProduct'がありません。")
+	}
 	repeat := strings.Repeat("(?,?,?),", len(dataKey)-1) + "(?,?,?)"
 	for _, v := range dataKey {
 		args = append(args, v.Product, v.BusinessPartner, v.Plant)
@@ -323,6 +347,9 @@ func (f *SubFunction) StockConfPlantBPGeneral(
 
 	stockConfPlantRelationProduct := psdc.StockConfPlantRelationProduct
 
+	if len(stockConfPlantRelationProduct) == 0 {
+		return nil, xerrors.Errorf("psdc.StockConfPlantRelationProductの'stockConfPlantRelationProduct'がありません。")
+	}
 	repeat := strings.Repeat("?,", len(stockConfPlantRelationProduct)-1) + "?"
 	for _, v := range stockConfPlantRelationProduct {
 		args = append(args, v.StockConfirmationBusinessPartner)
@@ -367,11 +394,17 @@ func (f *SubFunction) ProductionPlantRelationProduct(
 		}
 	}
 
+	if len(dataKey.SupplyChainRelationshipID) == 0 {
+		return nil, xerrors.Errorf("SupplyChainRelationshipGeneralの'SupplyChainRelationshipID'がありません。")
+	}
 	repeat1 := strings.Repeat("(?,?,?),", len(dataKey.SupplyChainRelationshipID)-1) + "(?,?,?)"
 	for i := range dataKey.SupplyChainRelationshipID {
 		args = append(args, dataKey.SupplyChainRelationshipID[i], dataKey.Buyer[i], dataKey.Seller[i])
 	}
 
+	if len(dataKey.Product) == 0 {
+		return nil, xerrors.Errorf("psdc.ProductMasterGeneralの'Product'がありません。")
+	}
 	repeat2 := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
@@ -413,6 +446,9 @@ func (f *SubFunction) ProductionPlantProductMasterBPPlant(
 		dataKey[i].Plant = productionPlantRelationProduct[i].ProductionPlant
 	}
 
+	if len(dataKey) == 0 {
+		return nil, xerrors.Errorf("'psdc.ProductionPlantRelationProduct'がありません。")
+	}
 	repeat := strings.Repeat("(?,?,?),", len(dataKey)-1) + "(?,?,?)"
 	for _, v := range dataKey {
 		args = append(args, v.Product, v.BusinessPartner, v.Plant)
@@ -444,6 +480,9 @@ func (f *SubFunction) ProductionPlantBPGeneral(
 
 	productionPlantRelationProduct := psdc.ProductionPlantRelationProduct
 
+	if len(productionPlantRelationProduct) == 0 {
+		return nil, xerrors.Errorf("'psdc.ProductionPlantRelationProduct'がありません。")
+	}
 	repeat := strings.Repeat("?,", len(productionPlantRelationProduct)-1) + "?"
 	for _, v := range productionPlantRelationProduct {
 		args = append(args, v.ProductionPlantBusinessPartner)
@@ -485,6 +524,9 @@ func (f *SubFunction) SupplyChainRelationshipDeliveryPlantRelationProduct(
 		dataKey.DeliverFromPlant = append(dataKey.DeliverFromPlant, v.DeliverFromPlant)
 	}
 
+	if len(dataKey.DeliverToParty) == 0 {
+		return nil, xerrors.Errorf("psdc.SupplyChainRelationshipDeliveryPlantRelationの'DeliverToParty'がありません。")
+	}
 	repeat1 := strings.Repeat("(?,?,?,?,?,?,?),", len(dataKey.DeliverToParty)-1) + "(?,?,?,?,?,?,?)"
 	for i := range dataKey.SupplyChainRelationshipID {
 		args = append(
@@ -506,6 +548,9 @@ func (f *SubFunction) SupplyChainRelationshipDeliveryPlantRelationProduct(
 		}
 	}
 
+	if len(dataKey.Product) == 0 {
+		return nil, xerrors.Errorf("psdc.ProductionPlantRelationProductの'Product'がありません。")
+	}
 	repeat2 := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
@@ -551,6 +596,9 @@ func (f *SubFunction) SupplyChainRelationshipProductMasterBPPlantDeliverTo(
 		dataKey[i].Plant = supplyChainRelationshipDeliveryPlantRelationProduct[i].DeliverToPlant
 	}
 
+	if len(dataKey) == 0 {
+		return nil, xerrors.Errorf("'psdc.SupplyChainRelationshipDeliveryPlantRelationProduct'がありません。")
+	}
 	repeat := strings.Repeat("(?,?,?),", len(dataKey)-1) + "(?,?,?)"
 	for _, v := range dataKey {
 		args = append(args, v.Product, v.BusinessPartner, v.Plant)
@@ -590,6 +638,9 @@ func (f *SubFunction) SupplyChainRelationshipProductMasterBPPlantDeliverFrom(
 		dataKey[i].Plant = supplyChainRelationshipDeliveryPlantRelationProduct[i].DeliverFromPlant
 	}
 
+	if len(dataKey) == 0 {
+		return nil, xerrors.Errorf("'psdc.SupplyChainRelationshipDeliveryPlantRelationProduct'がありません。")
+	}
 	repeat := strings.Repeat("(?,?,?),", len(dataKey)-1) + "(?,?,?)"
 	for _, v := range dataKey {
 		args = append(args, v.Product, v.BusinessPartner, v.Plant)
@@ -692,6 +743,9 @@ func (f *SubFunction) timeZone(
 ) ([]*api_processing_data_formatter.TimeZone, error) {
 	args := make([]interface{}, 0)
 
+	if len(dataKey) == 0 {
+		return nil, xerrors.Errorf("'TimeZoneKey'がありません。")
+	}
 	repeat := strings.Repeat("(?,?),", len(dataKey)-1) + "(?,?)"
 	for _, v := range dataKey {
 		args = append(args, v.BusinessPartner, v.Plant)
@@ -766,7 +820,7 @@ func (f *SubFunction) PaymentMethod(
 func (f *SubFunction) ItemGrossWeight(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
-) []*api_processing_data_formatter.ItemGrossWeight {
+) ([]*api_processing_data_formatter.ItemGrossWeight, error) {
 	data := make([]*api_processing_data_formatter.ItemGrossWeight, 0)
 
 	productMasterGeneral := psdc.ProductMasterGeneral
@@ -786,24 +840,30 @@ func (f *SubFunction) ItemGrossWeight(
 		}
 		productGrossWeight := productMasterGeneralMap[product].GrossWeight
 		orderQuantityInBaseUnit := v.OrderQuantityInBaseUnit
+		if productGrossWeight == nil || orderQuantityInBaseUnit == nil {
+			return nil, xerrors.Errorf("GrossWeightまたはOrderQuantityInBaseUnitがnullです。")
+		}
 		itemGrossWeight := parseFloat32Ptr(*productGrossWeight * *orderQuantityInBaseUnit)
 
 		datum := psdc.ConvertToItemGrossWeight(orderItem, product, productGrossWeight, orderQuantityInBaseUnit, itemGrossWeight)
 		data = append(data, datum)
 	}
 
-	return data
+	return data, nil
 }
 
 func (f *SubFunction) ItemNetWeight(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
-) []*api_processing_data_formatter.ItemNetWeight {
+) ([]*api_processing_data_formatter.ItemNetWeight, error) {
 	data := make([]*api_processing_data_formatter.ItemNetWeight, 0)
 
 	item := sdc.Header.Item
 	itemMap := make(map[string]api_input_reader.Item, len(item))
 	for _, v := range item {
+		if v.Product == nil {
+			return nil, xerrors.Errorf("入力ファイルのItemの'Product'がnullです。")
+		}
 		itemMap[*v.Product] = v
 	}
 
@@ -811,13 +871,16 @@ func (f *SubFunction) ItemNetWeight(
 		product := v.Product
 		productNetWeight := v.GrossWeight
 		orderQuantityInBaseUnit := itemMap[product].OrderQuantityInBaseUnit
+		if productNetWeight == nil || orderQuantityInBaseUnit == nil {
+			return nil, xerrors.Errorf("GrossWeightまたはOrderQuantityInBaseUnitがnullです。")
+		}
 		itemNetWeight := parseFloat32Ptr(*productNetWeight * *orderQuantityInBaseUnit)
 
 		datum := psdc.ConvertToItemNetWeight(product, productNetWeight, orderQuantityInBaseUnit, itemNetWeight)
 		data = append(data, datum)
 	}
 
-	return data
+	return data, nil
 }
 
 func (f *SubFunction) TaxCode(
@@ -871,6 +934,9 @@ func (f *SubFunction) TaxRate(
 	dataKey.ValidityEndDate = getSystemDate()
 	dataKey.ValidityStartDate = getSystemDate()
 
+	if len(dataKey.TaxCode) == 0 {
+		return nil, xerrors.Errorf("psdc.TaxCodeの'TaxCode'がありません。")
+	}
 	repeat := strings.Repeat("?,", len(dataKey.TaxCode)-1) + "?"
 	args = append(args, dataKey.Country)
 	for _, v := range dataKey.TaxCode {
@@ -932,6 +998,9 @@ func (f *SubFunction) OrdinaryStockConfirmation(
 			dataKey[idx].Product = v.Product
 			dataKey[idx].StockConfirmationBusinessPartner = v.BusinessPartner
 			dataKey[idx].StockConfirmationPlant = v.Plant
+			if inputItemMap[v.Product].RequestedDeliveryDate == nil {
+				return nil, xerrors.Errorf("psdc.StockConfPlantProductMasterBPPlantのIsBatchManagementRequiredの'RequestedDeliveryDate'がありません。")
+			}
 			dataKey[idx].RequestedDeliveryDate = *inputItemMap[v.Product].RequestedDeliveryDate
 			idx++
 		}
@@ -988,7 +1057,7 @@ func (f *SubFunction) OrdinaryStockConfirmationOrdersItemScheduleLine(
 			continue
 		}
 
-		orderID := psdc.CalculateOrderID.OrderID
+		orderID := sdc.Header.OrderID
 		orderItem := psdc.OrderItem[i].OrderItemNumber
 		scheduleLine := idx
 		stockConfirmationPlantTimeZone := new(string)
@@ -1129,11 +1198,17 @@ func (f *SubFunction) OrderItemTextByBuyer(
 		dataKey.Language = append(dataKey.Language, v.Language)
 	}
 
+	if len(dataKey.Product) == 0 {
+		return nil, xerrors.Errorf("入力ファイルのItemの'Product'がありません。")
+	}
 	repeat1 := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
 	}
 
+	if len(dataKey.BusinessPartner) == 0 {
+		return nil, xerrors.Errorf("psdc.BusinessPartnerGeneralBuyerの'BusinessPartner'がありません。")
+	}
 	repeat2 := strings.Repeat("(?,?),", len(dataKey.BusinessPartner)-1) + "(?,?)"
 	for i := range dataKey.BusinessPartner {
 		args = append(args, dataKey.BusinessPartner[i], dataKey.Language[i])
@@ -1178,11 +1253,17 @@ func (f *SubFunction) OrderItemTextBySeller(
 		dataKey.Language = append(dataKey.Language, v.Language)
 	}
 
+	if len(dataKey.Product) == 0 {
+		return nil, xerrors.Errorf("入力ファイルのItemの'Product'がありません。")
+	}
 	repeat1 := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
 	}
 
+	if len(dataKey.BusinessPartner) == 0 {
+		return nil, xerrors.Errorf("psdc.BusinessPartnerGeneralBuyerの'BusinessPartner'がありません。")
+	}
 	repeat2 := strings.Repeat("(?,?),", len(dataKey.BusinessPartner)-1) + "(?,?)"
 	for i := range dataKey.BusinessPartner {
 		args = append(args, dataKey.BusinessPartner[i], dataKey.Language[i])
@@ -1224,9 +1305,9 @@ func (f *SubFunction) TaxAmount(
 	data := make([]*api_processing_data_formatter.TaxAmount, 0)
 
 	item := sdc.Header.Item
-	itemMap := make(map[string]api_input_reader.Item, len(item))
+	itemMap := make(map[int]api_input_reader.Item, len(item))
 	for _, v := range item {
-		itemMap[*v.Product] = v
+		itemMap[v.OrderItem] = v
 	}
 
 	taxRate := psdc.TaxRate
@@ -1241,21 +1322,32 @@ func (f *SubFunction) TaxAmount(
 		netAmountMap[v.Product] = v
 	}
 
-	for _, v := range psdc.TaxCode {
+	taxCode := psdc.TaxCode
+	taxCodeMap := make(map[string]*api_processing_data_formatter.TaxCode, len(taxCode))
+	for _, v := range taxCode {
+		taxCodeMap[v.Product] = v
+	}
+	for _, v := range psdc.NetAmount {
 		taxAmount := new(float32)
-		if *v.TaxCode == "1" {
-			taxAmount, _ = calculateTaxAmount(taxRateMap[*v.TaxCode].TaxRate, netAmountMap[v.Product].NetAmount)
+		product := v.Product
+
+		if taxCodeMap[product].TaxCode == nil {
+			continue
+		}
+		taxCode := *taxCodeMap[product].TaxCode
+		if taxCode == "1" {
+			taxAmount, _ = calculateTaxAmount(taxRateMap[taxCode].TaxRate, netAmountMap[v.Product].NetAmount)
 		} else {
 			taxAmount = parseFloat32Ptr(0)
 		}
 
-		if itemMap[v.Product].TaxAmount == nil {
-			datum := psdc.ConvertToTaxAmount(v.Product, v.TaxCode, taxRateMap[*v.TaxCode].TaxRate, netAmountMap[v.Product].NetAmount, taxAmount)
+		if itemMap[v.OrderItem].TaxAmount == nil {
+			datum := psdc.ConvertToTaxAmount(v.OrderItem, v.Product, taxCode, taxRateMap[taxCode].TaxRate, netAmountMap[v.Product].NetAmount, taxAmount)
 			data = append(data, datum)
 		} else {
-			datum := psdc.ConvertToTaxAmount(v.Product, v.TaxCode, taxRateMap[*v.TaxCode].TaxRate, netAmountMap[v.Product].NetAmount, itemMap[v.Product].TaxAmount)
+			datum := psdc.ConvertToTaxAmount(v.OrderItem, v.Product, taxCode, taxRateMap[taxCode].TaxRate, netAmountMap[v.Product].NetAmount, itemMap[v.OrderItem].TaxAmount)
 			data = append(data, datum)
-			if math.Abs(float64(*taxAmount-*itemMap[v.Product].TaxAmount)) >= 2 {
+			if differenceIsOver(*taxAmount, *itemMap[v.OrderItem].TaxAmount, 2) {
 				return nil, xerrors.Errorf("TaxAmountについて入力ファイルの値と計算結果の差の絶対値が2以上の明細が一つ以上存在します。")
 			}
 		}
@@ -1271,21 +1363,24 @@ func (f *SubFunction) GrossAmount(
 	data := make([]*api_processing_data_formatter.GrossAmount, 0)
 
 	item := sdc.Header.Item
-	itemMap := make(map[string]api_input_reader.Item, len(item))
+	itemMap := make(map[int]api_input_reader.Item, len(item))
 	for _, v := range item {
-		itemMap[*v.Product] = v
+		itemMap[v.OrderItem] = v
 	}
 
 	for _, v := range psdc.TaxAmount {
+		if v.NetAmount == nil || v.TaxAmount == nil {
+			return nil, xerrors.Errorf("NetAmountまたはTaxAmountがnullです。")
+		}
 		grossAmount := parseFloat32Ptr(*v.NetAmount + *v.TaxAmount)
 
-		if itemMap[v.Product].GrossAmount == nil {
-			datum := psdc.ConvertToGrossAmount(v.Product, v.NetAmount, v.TaxAmount, grossAmount)
+		if itemMap[v.OrderItem].GrossAmount == nil {
+			datum := psdc.ConvertToGrossAmount(v.OrderItem, v.Product, v.NetAmount, v.TaxAmount, grossAmount)
 			data = append(data, datum)
 		} else {
-			datum := psdc.ConvertToGrossAmount(v.Product, v.NetAmount, v.TaxAmount, itemMap[v.Product].GrossAmount)
+			datum := psdc.ConvertToGrossAmount(v.OrderItem, v.Product, v.NetAmount, v.TaxAmount, itemMap[v.OrderItem].GrossAmount)
 			data = append(data, datum)
-			if math.Abs(float64(*grossAmount-*itemMap[v.Product].GrossAmount)) >= 2 {
+			if differenceIsOver(*grossAmount, *itemMap[v.OrderItem].GrossAmount, 2) {
 				return nil, xerrors.Errorf("GrossAmountについて入力ファイルの値と計算結果の差の絶対値が2以上の明細が一つ以上存在します。")
 			}
 		}
@@ -1306,6 +1401,10 @@ func calculateTaxAmount(taxRate *float32, netAmount *float32) (*float32, error) 
 	res := parseFloat32Ptr(float32(s))
 
 	return res, nil
+}
+
+func differenceIsOver(inputValue, calculatedValue float32, baseValue int) bool {
+	return math.Abs(float64(inputValue-calculatedValue)) >= float64(baseValue)
 }
 
 // 数量単位変換実行の是非の判定
@@ -1345,6 +1444,9 @@ func (f *SubFunction) QuantityUnitConversion(
 		return nil, nil
 	}
 
+	if len(dataKey) == 0 {
+		return nil, xerrors.Errorf("psdc.ProductMasterGeneralの'product, baseUnit, deliveryUnit'がありません。")
+	}
 	repeat := strings.Repeat("(?,?),", len(dataKey)-1) + "(?,?)"
 	for _, v := range dataKey {
 		args = append(args, v.BaseUnit, v.DeliveryUnit)
@@ -1374,6 +1476,9 @@ func (f *SubFunction) QuantityUnitConversion(
 		}
 
 		orderItem := psdc.OrderItem[i].OrderItemNumber
+		if v.Product == nil {
+			return nil, xerrors.Errorf("入力ファイルのItemの'Product'がありません。")
+		}
 		product := *v.Product
 		orderQuantityInBaseUnit := v.OrderQuantityInBaseUnit
 		conversionCoefficient := dataQueryGetsMap[*v.Product].ConversionCoefficient
@@ -1438,6 +1543,15 @@ func (f *SubFunction) CreationDateItem(
 	return data
 }
 
+func (f *SubFunction) CreationTimeItem(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) *api_processing_data_formatter.CreationTimeItem {
+	data := psdc.ConvertToCreationTimeItem(getSystemTime())
+
+	return data
+}
+
 func (f *SubFunction) LastChangeDateItem(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
@@ -1447,9 +1561,23 @@ func (f *SubFunction) LastChangeDateItem(
 	return data
 }
 
+func (f *SubFunction) LastChangeTimeItem(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) *api_processing_data_formatter.LastChangeTimeItem {
+	data := psdc.ConvertToLastChangeTimeItem(getSystemTime())
+
+	return data
+}
+
 func getSystemDate() string {
 	day := time.Now()
 	return day.Format("2006-01-02")
+}
+
+func getSystemTime() string {
+	day := time.Now()
+	return day.Format("15:04:05")
 }
 
 func getStringPtr(s string) *string {

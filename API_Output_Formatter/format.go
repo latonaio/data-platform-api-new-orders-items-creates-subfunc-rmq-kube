@@ -56,7 +56,7 @@ func ConvertToItem(
 		}
 		product := *v.Product
 
-		item.OrderID = psdc.CalculateOrderID.OrderID
+		item.OrderID = sdc.Header.OrderID
 		item.OrderItem = psdc.OrderItem[i].OrderItemNumber
 		item.OrderItemCategory = *productMasterGeneralMap[product].ItemCategory
 		item.SupplyChainRelationshipID = psdc.SupplyChainRelationshipGeneral[0].SupplyChainRelationshipID
@@ -77,7 +77,9 @@ func ConvertToItem(
 		item.DeliverFromParty = &psdc.SupplyChainRelationshipDeliveryRelation[0].DeliverFromParty
 		item.DeliverToPlant = &psdc.SupplyChainRelationshipDeliveryPlantRelation[0].DeliverToPlant
 		item.CreationDate = psdc.CreationDateItem.CreationDate
+		item.CreationTime = psdc.CreationTimeItem.CreationTime
 		item.LastChangeDate = psdc.LastChangeDateItem.LastChangeDate
+		item.LastChangeTime = psdc.LastChangeTimeItem.LastChangeTime
 
 		item.DeliverToPlant = &psdc.SupplyChainRelationshipDeliveryPlantRelation[0].DeliverToPlant
 		item.DeliverFromPlant = &psdc.SupplyChainRelationshipDeliveryPlantRelation[0].DeliverFromPlant
@@ -238,7 +240,7 @@ func ConvertToItemPricingElement(
 				return nil, err
 			}
 
-			itemPricingElement.OrderID = psdc.CalculateOrderID.OrderID
+			itemPricingElement.OrderID = sdc.Header.OrderID
 			itemPricingElement.OrderItem = psdc.OrderItem[i].OrderItemNumber
 			itemPricingElement.PricingProcedureCounter = psdc.PricingProcedureCounter[pricingProcedureCounterIdx].PricingProcedureCounter[j]
 			itemPricingElement.PricingDate = &psdc.ItemPricingDate[i].PricingDate
@@ -295,7 +297,7 @@ func ConvertToItemPricingElement(
 				return nil, err
 			}
 
-			itemPricingElement.OrderID = psdc.CalculateOrderID.OrderID
+			itemPricingElement.OrderID = sdc.Header.OrderID
 			itemPricingElement.OrderItem = psdc.OrderItem[i].OrderItemNumber
 			itemPricingElement.PricingProcedureCounter = len(psdc.PricingProcedureCounter[pricingProcedureCounterIdx].PricingProcedureCounter) + 1
 			itemPricingElement.PricingDate = &psdc.ItemPricingDate[i].PricingDate
@@ -331,7 +333,7 @@ func ConvertToItemScheduleLine(
 ) ([]*ItemScheduleLine, error) {
 	var err error
 
-	ordersItemScheduleLineMap := StructArrayToMap(psdc.OrdinaryStockConfirmationOrdersItemScheduleLine, "Product")
+	ordersItemScheduleLineMap := StructArrayToMap(psdc.OrdinaryStockConfirmationOrdersItemScheduleLine, "OrderItem")
 
 	length := 0
 	for _, v := range sdc.Header.Item {
@@ -339,9 +341,11 @@ func ConvertToItemScheduleLine(
 	}
 
 	itemScheduleLines := make([]*ItemScheduleLine, 0, length)
-	for _, item := range sdc.Header.Item {
+	for i, orderItem := range psdc.OrderItem {
+		item := sdc.Header.Item[i]
+		orderItemNumber := orderItem.OrderItemNumber
 		for j := range item.ItemScheduleLine {
-			if _, ok := ordersItemScheduleLineMap[*item.Product]; !ok {
+			if _, ok := ordersItemScheduleLineMap[orderItemNumber]; !ok {
 				continue
 			}
 
@@ -357,29 +361,30 @@ func ConvertToItemScheduleLine(
 			if item.Product == nil {
 				continue
 			}
-			product := *item.Product
+			// product := *item.Product
 
-			itemScheduleLine.OrderID = ordersItemScheduleLineMap[product].OrderID
-			itemScheduleLine.OrderItem = ordersItemScheduleLineMap[product].OrderItem
-			itemScheduleLine.ScheduleLine = ordersItemScheduleLineMap[product].ScheduleLine
-			itemScheduleLine.SupplyChainRelationshipID = ordersItemScheduleLineMap[product].SupplyChainRelationshipID
-			itemScheduleLine.SupplyChainRelationshipStockConfPlantID = ordersItemScheduleLineMap[product].SupplyChainRelationshipStockConfPlantID
-			itemScheduleLine.Product = ordersItemScheduleLineMap[product].Product
-			itemScheduleLine.StockConfirmationBussinessPartner = ordersItemScheduleLineMap[product].StockConfirmationBussinessPartner
-			itemScheduleLine.StockConfirmationPlant = ordersItemScheduleLineMap[product].StockConfirmationPlant
-			itemScheduleLine.StockConfirmationPlantTimeZone = ordersItemScheduleLineMap[product].StockConfirmationPlantTimeZone
-			itemScheduleLine.StockConfirmationPlantBatch = ordersItemScheduleLineMap[product].StockConfirmationPlantBatch
-			itemScheduleLine.StockConfirmationPlantBatchValidityStartDate = ordersItemScheduleLineMap[product].StockConfirmationPlantBatchValidityStartDate
-			itemScheduleLine.StockConfirmationPlantBatchValidityEndDate = ordersItemScheduleLineMap[product].StockConfirmationPlantBatchValidityEndDate
-			itemScheduleLine.RequestedDeliveryDate = ordersItemScheduleLineMap[product].RequestedDeliveryDate
-			itemScheduleLine.ConfirmedDeliveryDate = ordersItemScheduleLineMap[product].ConfirmedDeliveryDate
-			itemScheduleLine.OrderQuantityInBaseUnit = ordersItemScheduleLineMap[product].OrderQuantityInBaseUnit
-			itemScheduleLine.ConfirmedOrderQuantityByPDTAvailCheck = ordersItemScheduleLineMap[product].ConfirmedOrderQuantityByPDTAvailCheck
-			itemScheduleLine.DeliveredQuantityInBaseUnit = ordersItemScheduleLineMap[product].DeliveredQuantityInBaseUnit
-			itemScheduleLine.OpenConfirmedQuantityInBaseUnit = ordersItemScheduleLineMap[product].OpenConfirmedQuantityInBaseUnit
-			itemScheduleLine.StockIsFullyConfirmed = ordersItemScheduleLineMap[product].StockIsFullyConfirmed
-			itemScheduleLine.PlusMinusFlag = ordersItemScheduleLineMap[product].PlusMinusFlag
-			itemScheduleLine.ItemScheduleLineDeliveryBlockStatus = ordersItemScheduleLineMap[product].ItemScheduleLineDeliveryBlockStatus
+			itemScheduleLine.OrderID = ordersItemScheduleLineMap[orderItemNumber].OrderID
+			itemScheduleLine.OrderItem = ordersItemScheduleLineMap[orderItemNumber].OrderItem
+			itemScheduleLine.ScheduleLine = ordersItemScheduleLineMap[orderItemNumber].ScheduleLine
+			itemScheduleLine.SupplyChainRelationshipID = ordersItemScheduleLineMap[orderItemNumber].SupplyChainRelationshipID
+			itemScheduleLine.SupplyChainRelationshipStockConfPlantID = ordersItemScheduleLineMap[orderItemNumber].SupplyChainRelationshipStockConfPlantID
+			itemScheduleLine.Product = ordersItemScheduleLineMap[orderItemNumber].Product
+			itemScheduleLine.StockConfirmationBussinessPartner = ordersItemScheduleLineMap[orderItemNumber].StockConfirmationBussinessPartner
+			itemScheduleLine.StockConfirmationPlant = ordersItemScheduleLineMap[orderItemNumber].StockConfirmationPlant
+			itemScheduleLine.StockConfirmationPlantTimeZone = ordersItemScheduleLineMap[orderItemNumber].StockConfirmationPlantTimeZone
+			itemScheduleLine.StockConfirmationPlantBatch = ordersItemScheduleLineMap[orderItemNumber].StockConfirmationPlantBatch
+			itemScheduleLine.StockConfirmationPlantBatchValidityStartDate = ordersItemScheduleLineMap[orderItemNumber].StockConfirmationPlantBatchValidityStartDate
+			itemScheduleLine.StockConfirmationPlantBatchValidityEndDate = ordersItemScheduleLineMap[orderItemNumber].StockConfirmationPlantBatchValidityEndDate
+			itemScheduleLine.RequestedDeliveryDate = ordersItemScheduleLineMap[orderItemNumber].RequestedDeliveryDate
+			itemScheduleLine.RequestedDeliveryTime = ordersItemScheduleLineMap[orderItemNumber].RequestedDeliveryTime
+			itemScheduleLine.ConfirmedDeliveryDate = ordersItemScheduleLineMap[orderItemNumber].ConfirmedDeliveryDate
+			itemScheduleLine.OriginalOrderQuantityInBaseUnit = ordersItemScheduleLineMap[orderItemNumber].OrderQuantityInBaseUnit
+			itemScheduleLine.ConfirmedOrderQuantityByPDTAvailCheck = ordersItemScheduleLineMap[orderItemNumber].ConfirmedOrderQuantityByPDTAvailCheck
+			itemScheduleLine.DeliveredQuantityInBaseUnit = ordersItemScheduleLineMap[orderItemNumber].DeliveredQuantityInBaseUnit
+			itemScheduleLine.OpenConfirmedQuantityInBaseUnit = ordersItemScheduleLineMap[orderItemNumber].OpenConfirmedQuantityInBaseUnit
+			itemScheduleLine.StockIsFullyConfirmed = ordersItemScheduleLineMap[orderItemNumber].StockIsFullyConfirmed
+			itemScheduleLine.PlusMinusFlag = ordersItemScheduleLineMap[orderItemNumber].PlusMinusFlag
+			itemScheduleLine.ItemScheduleLineDeliveryBlockStatus = ordersItemScheduleLineMap[orderItemNumber].ItemScheduleLineDeliveryBlockStatus
 
 			itemScheduleLines = append(itemScheduleLines, itemScheduleLine)
 		}
@@ -405,7 +410,7 @@ func ConvertToPartner(
 			return nil, err
 		}
 
-		partner.OrderID = psdc.CalculateOrderID.OrderID
+		partner.OrderID = sdc.Header.OrderID
 		partner.PartnerFunction = v.PartnerFunction
 		partner.BusinessPartner = v.BusinessPartner
 		partner.BusinessPartnerFullName = v.BusinessPartnerFullName
@@ -438,7 +443,7 @@ func ConvertToAddress(
 			return nil, err
 		}
 
-		address.OrderID = psdc.CalculateOrderID.OrderID
+		address.OrderID = sdc.Header.OrderID
 		address.AddressID = v.AddressID
 		address.PostalCode = &v.PostalCode
 		address.LocalRegion = &v.LocalRegion

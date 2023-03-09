@@ -249,7 +249,11 @@ func (f *SubFunction) CreateSdc(
 				}
 
 				// 8-4. 入力ファイルの価格の保持(入力ファイルの[ConditionAmount]がnullでない場合)
-				psdc.ConditionIsManuallyChanged = f.ConditionIsManuallyChanged(sdc, psdc)
+				psdc.ConditionIsManuallyChanged, e = f.ConditionIsManuallyChanged(sdc, psdc)
+				if e != nil {
+					err = e
+					return
+				}
 
 				// 8-5. PricingProcedureCounter
 				psdc.PricingProcedureCounter = f.PricingProcedureCounter(sdc, psdc)
@@ -440,23 +444,20 @@ func (f *SubFunction) CreateSdc(
 			go func(wg *sync.WaitGroup) {
 				defer wg.Done()
 				// 2-18. ItemGrossWeight  //2-4
-				psdc.ItemGrossWeight = f.ItemGrossWeight(sdc, psdc)
+				psdc.ItemGrossWeight, e = f.ItemGrossWeight(sdc, psdc)
+				if e != nil {
+					err = e
+					return
+				}
 
 				// 2-19. ItemNetWeight  //2-4
-				psdc.ItemNetWeight = f.ItemNetWeight(sdc, psdc)
+				psdc.ItemNetWeight, e = f.ItemNetWeight(sdc, psdc)
+				if e != nil {
+					err = e
+					return
+				}
 			}(wg)
 		}(wg)
-	}(&wg)
-
-	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
-		defer wg.Done()
-		// 1-6. OrderID
-		psdc.CalculateOrderID, e = f.CalculateOrderID(sdc, psdc)
-		if e != nil {
-			err = e
-			return
-		}
 	}(&wg)
 
 	wg.Add(1)
@@ -481,11 +482,13 @@ func (f *SubFunction) CreateSdc(
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		// 99-1-2. CreationDate(Item)
+		// 99-1-2. CreationDate(Item)、CreationTime(Item)
 		psdc.CreationDateItem = f.CreationDateItem(sdc, psdc)
+		psdc.CreationTimeItem = f.CreationTimeItem(sdc, psdc)
 
-		// 99-2-2. LastChangeDate(Item)
+		// 99-2-2. LastChangeDate(Item)、LastChangedTime(Item)
 		psdc.LastChangeDateItem = f.LastChangeDateItem(sdc, psdc)
+		psdc.LastChangeTimeItem = f.LastChangeTimeItem(sdc, psdc)
 	}(&wg)
 
 	wg.Wait()

@@ -14,6 +14,7 @@ type OrdersItemScheduleLine struct {
 	StockConfirmationPlantBatchValidityStartDate *string  `json:"StockConfirmationPlantBatchValidityStartDate"`
 	StockConfirmationPlantBatchValidityEndDate   *string  `json:"StockConfirmationPlantBatchValidityEndDate"`
 	RequestedDeliveryDate                        string   `json:"RequestedDeliveryDate"`
+	RequestedDeliveryTime                        string   `json:"RequestedDeliveryTime"`
 	ConfirmedDeliveryDate                        string   `json:"ConfirmedDeliveryDate"`
 	OrderQuantityInBaseUnit                      float32  `json:"OrderQuantityInBaseUnit"`
 	ConfirmedOrderQuantityByPDTAvailCheck        float32  `json:"ConfirmedOrderQuantityByPDTAvailCheck"`

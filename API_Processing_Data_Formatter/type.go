@@ -1,58 +1,5 @@
 package api_processing_data_formatter
 
-type EC_MC struct {
-	ConnectionKey string `json:"connection_key"`
-	Result        bool   `json:"result"`
-	RedisKey      string `json:"redis_key"`
-	Filepath      string `json:"filepath"`
-	Document      struct {
-		DocumentNo     string `json:"document_no"`
-		DeliverTo      string `json:"deliver_to"`
-		Quantity       string `json:"quantity"`
-		PickedQuantity string `json:"picked_quantity"`
-		Price          string `json:"price"`
-		Batch          string `json:"batch"`
-	} `json:"document"`
-	BusinessPartner struct {
-		DocumentNo           string `json:"document_no"`
-		Status               string `json:"status"`
-		DeliverTo            string `json:"deliver_to"`
-		Quantity             string `json:"quantity"`
-		CompletedQuantity    string `json:"completed_quantity"`
-		PlannedStartDate     string `json:"planned_start_date"`
-		PlannedValidatedDate string `json:"planned_validated_date"`
-		ActualStartDate      string `json:"actual_start_date"`
-		ActualValidatedDate  string `json:"actual_validated_date"`
-		Batch                string `json:"batch"`
-		Work                 struct {
-			WorkNo                   string `json:"work_no"`
-			Quantity                 string `json:"quantity"`
-			CompletedQuantity        string `json:"completed_quantity"`
-			ErroredQuantity          string `json:"errored_quantity"`
-			Component                string `json:"component"`
-			PlannedComponentQuantity string `json:"planned_component_quantity"`
-			PlannedStartDate         string `json:"planned_start_date"`
-			PlannedStartTime         string `json:"planned_start_time"`
-			PlannedValidatedDate     string `json:"planned_validated_date"`
-			PlannedValidatedTime     string `json:"planned_validated_time"`
-			ActualStartDate          string `json:"actual_start_date"`
-			ActualStartTime          string `json:"actual_start_time"`
-			ActualValidatedDate      string `json:"actual_validated_date"`
-			ActualValidatedTime      string `json:"actual_validated_time"`
-		} `json:"work"`
-	} `json:"business_partner"`
-	APISchema     string   `json:"api_schema"`
-	Accepter      []string `json:"accepter"`
-	MaterialCode  string   `json:"material_code"`
-	Plant         string   `json:"plant/supplier"`
-	Stock         string   `json:"stock"`
-	DocumentType  string   `json:"document_type"`
-	DocumentNo    string   `json:"document_no"`
-	PlannedDate   string   `json:"planned_date"`
-	ValidatedDate string   `json:"validated_date"`
-	Deleted       bool     `json:"deleted"`
-}
-
 type SDC struct {
 	MetaData                                               *MetaData                                              `json:"MetaData"`
 	SupplyChainRelationshipGeneral                         []*SupplyChainRelationshipGeneral                      `json:"SupplyChainRelationshipGeneral"`
@@ -61,7 +8,6 @@ type SDC struct {
 	SupplyChainRelationshipTransaction                     []*SupplyChainRelationshipTransaction                  `json:"SupplyChainRelationshipTransaction"`
 	SupplyChainRelationshipBillingRelation                 []*SupplyChainRelationshipBillingRelation              `json:"SupplyChainRelationshipBillingRelation"`
 	SupplyChainRelationshipPaymentRelation                 []*SupplyChainRelationshipPaymentRelation              `json:"SupplyChainRelationshipPaymentRelation"`
-	CalculateOrderID                                       *CalculateOrderID                                      `json:"CalculateOrderID"`
 	PaymentTerms                                           []*PaymentTerms                                        `json:"PaymentTerms"`
 	HeaderInvoiceDocumentDate                              *HeaderInvoiceDocumentDate                             `json:"HeaderInvoiceDocumentDate"`
 	HeaderPricingDate                                      *PricingDate                                           `json:"HeaderPricingDate"`
@@ -126,7 +72,9 @@ type SDC struct {
 	OrderQuantityInDeliveryUnit                            []*OrderQuantityInDeliveryUnit                         `json:"OrderQuantityInDeliveryUnit"`
 	Partner                                                []*Partner                                             `json:"Partner"`
 	CreationDateItem                                       *CreationDateItem                                      `json:"CreationDateItem"`
+	CreationTimeItem                                       *CreationTimeItem                                      `json:"CreationTimeItem"`
 	LastChangeDateItem                                     *LastChangeDateItem                                    `json:"LastChangeDateItem"`
+	LastChangeTimeItem                                     *LastChangeTimeItem                                    `json:"LastChangeTimeItem"`
 }
 
 // Initializer
@@ -235,22 +183,6 @@ type SupplyChainRelationshipPaymentRelation struct {
 	Payer                            int   `json:"Payer"`
 	Payee                            int   `json:"Payee"`
 	DefaultRelation                  *bool `json:"DefaultRelation"`
-}
-
-type CalculateOrderIDKey struct {
-	ServiceLabel             string `json:"service_label"`
-	FieldNameWithNumberRange string `json:"FieldNameWithNumberRange"`
-}
-
-type CalculateOrderIDQueryGets struct {
-	ServiceLabel             string `json:"service_label"`
-	FieldNameWithNumberRange string `json:"FieldNameWithNumberRange"`
-	LatestNumber             *int   `json:"LatestNumber"`
-}
-
-type CalculateOrderID struct {
-	OrderIDLatestNumber *int `json:"OrderIDLatestNumber"`
-	OrderID             int  `json:"OrderID"`
 }
 
 type PaymentTerms struct {
@@ -575,6 +507,7 @@ type OrdersItemScheduleLine struct {
 	StockConfirmationPlantBatchValidityStartDate *string  `json:"StockConfirmationPlantBatchValidityStartDate"`
 	StockConfirmationPlantBatchValidityEndDate   *string  `json:"StockConfirmationPlantBatchValidityEndDate"`
 	RequestedDeliveryDate                        string   `json:"RequestedDeliveryDate"`
+	RequestedDeliveryTime                        string   `json:"RequestedDeliveryTime"`
 	ConfirmedDeliveryDate                        string   `json:"ConfirmedDeliveryDate"`
 	OrderQuantityInBaseUnit                      float32  `json:"OrderQuantityInBaseUnit"`
 	ConfirmedOrderQuantityByPDTAvailCheck        float32  `json:"ConfirmedOrderQuantityByPDTAvailCheck"`
@@ -636,6 +569,7 @@ type PriceMaster struct {
 }
 
 type ConditionAmount struct {
+	OrderItem                  int      `json:"OrderItem"`
 	Product                    string   `json:"Product"`
 	ConditionQuantity          *float32 `json:"ConditionQuantity"`
 	ConditionAmount            *float32 `json:"ConditionAmount"`
@@ -669,19 +603,22 @@ type PricingProcedureCounter struct {
 
 // Amount関連の計算
 type NetAmount struct {
+	OrderItem int      `json:"OrderItem"`
 	Product   string   `json:"Product"`
 	NetAmount *float32 `json:"NetAmount"`
 }
 
 type TaxAmount struct {
+	OrderItem int      `json:"OrderItem"`
 	Product   string   `json:"Product"`
-	TaxCode   *string  `json:"TaxCode"`
+	TaxCode   string   `json:"TaxCode"`
 	TaxRate   *float32 `json:"TaxRate"`
 	NetAmount *float32 `json:"NetAmount"`
 	TaxAmount *float32 `json:"TaxAmount"`
 }
 
 type GrossAmount struct {
+	OrderItem   int      `json:"OrderItem"`
 	Product     string   `json:"Product"`
 	NetAmount   *float32 `json:"NetAmount"`
 	TaxAmount   *float32 `json:"TaxAmount"`
@@ -723,22 +660,6 @@ type AddressMaster struct {
 	Building          *string `json:"Building"`
 	Floor             *int    `json:"Floor"`
 	Room              *int    `json:"Room"`
-}
-
-type CalculateAddressIDKey struct {
-	ServiceLabel             string `json:"service_label"`
-	FieldNameWithNumberRange string `json:"FieldNameWithNumberRange"`
-}
-
-type CalculateAddressIDQueryGets struct {
-	ServiceLabel             string `json:"service_label"`
-	FieldNameWithNumberRange string `json:"FieldNameWithNumberRange"`
-	LatestNumber             *int   `json:"LatestNumber"`
-}
-
-type CalculateAddressID struct {
-	AddressIDLatestNumber *int `json:"AddressIDLatestNumber"`
-	AddressID             int  `json:"AddressID"`
 }
 
 // 数量単位変換実行の是非の判定
@@ -784,6 +705,14 @@ type CreationDateItem struct {
 	CreationDate string `json:"CreationDate"`
 }
 
+type CreationTimeItem struct {
+	CreationTime string `json:"CreationTime"`
+}
+
 type LastChangeDateItem struct {
 	LastChangeDate string `json:"LastChangeDate"`
+}
+
+type LastChangeTimeItem struct {
+	LastChangeTime string `json:"LastChangeTime"`
 }

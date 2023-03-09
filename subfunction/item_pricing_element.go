@@ -24,6 +24,10 @@ func (f *SubFunction) PriceMaster(
 		}
 	}
 
+	if dataKey.Product == nil {
+		return nil, nil
+	}
+
 	for _, v := range psdc.SupplyChainRelationshipGeneral {
 		dataKey.SupplyChainRelationshipID = append(dataKey.SupplyChainRelationshipID, v.SupplyChainRelationshipID)
 		dataKey.Buyer = append(dataKey.Buyer, v.Buyer)
@@ -33,11 +37,17 @@ func (f *SubFunction) PriceMaster(
 	dataKey.ConditionValidityEndDate = psdc.HeaderPricingDate.PricingDate
 	dataKey.ConditionValidityStartDate = psdc.HeaderPricingDate.PricingDate
 
+	if len(dataKey.Product) == 0 {
+		return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
+	}
 	repeat1 := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
 	}
 
+	if len(dataKey.SupplyChainRelationshipID) == 0 {
+		return nil, xerrors.Errorf("psdc.SupplyChainRelationshipGeneralの'SupplyChainRelationshipID'がありません。")
+	}
 	repeat2 := strings.Repeat("(?,?,?),", len(dataKey.SupplyChainRelationshipID)-1) + "(?,?,?)"
 	for i := range dataKey.SupplyChainRelationshipID {
 		args = append(args, dataKey.SupplyChainRelationshipID[i], dataKey.Buyer[i], dataKey.Seller[i])
@@ -79,16 +89,28 @@ func (f *SubFunction) ConditionAmount(
 	}
 
 	for _, v := range sdc.Header.Item {
+		orderItem := v.OrderItem
+		product := v.Product
+		conditionQuantity := v.OrderQuantityInBaseUnit
 		if v.ItemPricingElement[0].ConditionAmount == nil && v.Product != nil {
-			product := v.Product
-			conditionQuantity := v.OrderQuantityInBaseUnit
 			conditionRateValue := priceMasterMap[*v.Product].ConditionRateValue
 			conditionAmount, err := calculateConditionAmount(conditionQuantity, conditionRateValue)
 			if err != nil {
 				return nil, err
 			}
 
-			datum := psdc.ConvertToConditionAmount(*product, conditionQuantity, conditionAmount)
+			if product == nil {
+				return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
+			}
+			datum := psdc.ConvertToConditionAmount(orderItem, *product, conditionQuantity, conditionAmount)
+			data = append(data, datum)
+		} else if v.ItemPricingElement[0].ConditionAmount != nil && v.Product != nil {
+			conditionAmount := v.ItemPricingElement[0].ConditionAmount
+
+			if product == nil {
+				return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
+			}
+			datum := psdc.ConvertToConditionAmount(orderItem, *product, conditionQuantity, conditionAmount)
 			data = append(data, datum)
 		}
 	}
@@ -96,8 +118,8 @@ func (f *SubFunction) ConditionAmount(
 	return data, nil
 }
 
-func calculateConditionAmount(conditionRateValue *float32, conditionQuantity *float32) (*float32, error) {
-	if conditionRateValue == nil || conditionQuantity == nil {
+func calculateConditionAmount(conditionQuantity, conditionRateValue *float32) (*float32, error) {
+	if conditionQuantity == nil || conditionRateValue == nil {
 		return nil, xerrors.Errorf("ConditionRateValueまたはConditionQuantityがnullです。")
 	}
 
@@ -190,17 +212,20 @@ func calculateConditionRateValue(conditionRateValue *float32, taxRate *float32) 
 func (f *SubFunction) ConditionIsManuallyChanged(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
-) []*api_processing_data_formatter.ConditionIsManuallyChanged {
+) ([]*api_processing_data_formatter.ConditionIsManuallyChanged, error) {
 	data := make([]*api_processing_data_formatter.ConditionIsManuallyChanged, 0)
 
 	for _, v := range sdc.Header.Item {
 		if v.ItemPricingElement[0].ConditionAmount != nil {
+			if v.Product == nil {
+				return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
+			}
 			datum := psdc.ConvertToConditionIsManuallyChanged(*v.Product)
 			data = append(data, datum)
 		}
 	}
 
-	return data
+	return data, nil
 }
 
 func (f *SubFunction) PricingProcedureCounter(

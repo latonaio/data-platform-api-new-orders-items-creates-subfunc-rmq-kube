@@ -56,11 +56,17 @@ func (f *SubFunction) SupplyChainRelationshipDeliveryRelation(
 		dataKey.DeliverFromParty = append(dataKey.DeliverFromParty, *v.DeliverFromParty)
 	}
 
+	if len(dataKey.SupplyChainRelationshipID) == 0 {
+		return nil, xerrors.Errorf("psdc.SupplyChainRelationshipGeneralの'SupplyChainRelationshipID'がありません。")
+	}
 	repeat1 := strings.Repeat("(?,?,?),", len(dataKey.SupplyChainRelationshipID)-1) + "(?,?,?)"
 	for i := range dataKey.SupplyChainRelationshipID {
 		args = append(args, dataKey.SupplyChainRelationshipID[i], dataKey.Buyer[i], dataKey.Seller[i])
 	}
 
+	if len(dataKey.DeliverToParty) == 0 {
+		return nil, xerrors.Errorf("入力ファイルの'DeliverToParty'がありません。")
+	}
 	repeat2 := strings.Repeat("(?,?),", len(dataKey.DeliverToParty)-1) + "(?,?)"
 	for i := range dataKey.DeliverToParty {
 		args = append(args, dataKey.DeliverToParty[i], dataKey.DeliverFromParty[i])
@@ -102,6 +108,9 @@ func (f *SubFunction) SupplyChainRelationshipDeliveryPlantRelation(
 		dataKey.DeliverFromParty = append(dataKey.DeliverFromParty, v.DeliverFromParty)
 	}
 
+	if len(dataKey.DeliverToParty) == 0 {
+		return nil, xerrors.Errorf("入力ファイルの'DeliverToParty'がありません。")
+	}
 	repeat := strings.Repeat("(?,?,?,?,?,?),", len(dataKey.DeliverToParty)-1) + "(?,?,?,?,?,?)"
 	for i := range dataKey.SupplyChainRelationshipID {
 		args = append(
@@ -145,6 +154,9 @@ func (f *SubFunction) SupplyChainRelationshipTransaction(
 
 	supplyChainRelationshipGeneral := psdc.SupplyChainRelationshipGeneral
 
+	if len(supplyChainRelationshipGeneral) == 0 {
+		return nil, xerrors.Errorf("'psdc.SupplyChainRelationshipGeneral'がありません。")
+	}
 	repeat := strings.Repeat("(?,?,?),", len(supplyChainRelationshipGeneral)-1) + "(?,?,?)"
 	for _, v := range supplyChainRelationshipGeneral {
 		args = append(args, v.SupplyChainRelationshipID, v.Buyer, v.Seller)
@@ -182,6 +194,9 @@ func (f *SubFunction) SupplyChainRelationshipBillingRelation(
 		dataKey.Seller = append(dataKey.Seller, v.Seller)
 	}
 
+	if len(dataKey.SupplyChainRelationshipID) == 0 {
+		return nil, xerrors.Errorf("psdc.SupplyChainRelationshipGeneralの'SupplyChainRelationshipID'がありません。")
+	}
 	repeat := strings.Repeat("(?,?,?),", len(dataKey.SupplyChainRelationshipID)-1) + "(?,?,?)"
 	for i := range dataKey.SupplyChainRelationshipID {
 		args = append(
@@ -229,6 +244,9 @@ func (f *SubFunction) SupplyChainRelationshipPaymentRelation(
 		dataKey.BillFromParty = append(dataKey.BillFromParty, v.BillFromParty)
 	}
 
+	if len(dataKey.SupplyChainRelationshipID) == 0 {
+		return nil, xerrors.Errorf("psdc.SupplyChainRelationshipBillingRelation'SupplyChainRelationshipID'がありません。")
+	}
 	repeat := strings.Repeat("(?,?,?,?,?),", len(dataKey.SupplyChainRelationshipID)-1) + "(?,?,?,?,?)"
 	for i := range dataKey.SupplyChainRelationshipID {
 		args = append(
@@ -262,41 +280,6 @@ func (f *SubFunction) SupplyChainRelationshipPaymentRelation(
 	return data, err
 }
 
-func (f *SubFunction) CalculateOrderID(
-	sdc *api_input_reader.SDC,
-	psdc *api_processing_data_formatter.SDC,
-) (*api_processing_data_formatter.CalculateOrderID, error) {
-	dataKey := psdc.ConvertToCalculateOrderIDKey()
-
-	dataKey.ServiceLabel = psdc.MetaData.ServiceLabel
-
-	rows, err := f.db.Query(
-		`SELECT ServiceLabel, FieldNameWithNumberRange, LatestNumber
-		FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_number_range_latest_number_data
-		WHERE (ServiceLabel, FieldNameWithNumberRange) = (?, ?);`, dataKey.ServiceLabel, dataKey.FieldNameWithNumberRange,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	dataQueryGets, err := psdc.ConvertToCalculateOrderIDQueryGets(rows)
-	if err != nil {
-		return nil, err
-	}
-
-	if dataQueryGets.LatestNumber == nil {
-		return nil, xerrors.Errorf("LatestNumberがnullです。")
-	}
-
-	orderIDLatestNumber := dataQueryGets.LatestNumber
-	orderID := *dataQueryGets.LatestNumber + 1
-
-	data := psdc.ConvertToCalculateOrderID(orderIDLatestNumber, orderID)
-
-	return data, err
-}
-
 func (f *SubFunction) HeaderInvoiceDocumentDate(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
@@ -318,8 +301,8 @@ func (f *SubFunction) HeaderInvoiceDocumentDate(
 
 	if sdc.Header.InvoiceDocumentDate != nil {
 		if *sdc.Header.InvoiceDocumentDate != "" {
-			data := psdc.ConvertToHeaderInvoiceDocumentDate(sdc)
-			return data, nil
+			data, err := psdc.ConvertToHeaderInvoiceDocumentDate(sdc)
+			return data, err
 		}
 	}
 
@@ -333,7 +316,7 @@ func (f *SubFunction) HeaderInvoiceDocumentDate(
 		return nil, err
 	}
 
-	data := psdc.ConvertToCaluculateHeaderInvoiceDocumentDate(sdc, invoiceDocumentDate)
+	data, err := psdc.ConvertToCaluculateHeaderInvoiceDocumentDate(sdc, invoiceDocumentDate)
 
 	return data, err
 }
@@ -356,13 +339,22 @@ func calculateHeaderInvoiceDocumentDate(
 	day := t.Day()
 	for i, v := range paymentTerms {
 		if day <= v.BaseDate {
+			if v.BaseDateCalcAddMonth == nil {
+				return "", xerrors.Errorf("paymentTermsの'BaseDateCalcAddMonth'がありません。")
+			}
 			t = time.Date(t.Year(), t.Month()+time.Month(*v.BaseDateCalcAddMonth)+1, 0, 0, 0, 0, 0, time.UTC)
+			if v.BaseDateCalcFixedDate == nil {
+				return "", xerrors.Errorf("paymentTermsの'BaseDateCalcFixedDate'がありません。")
+			}
 			if *v.BaseDateCalcFixedDate == 31 {
 				t = time.Date(t.Year(), t.Month()+1, 0, 0, 0, 0, 0, time.UTC)
 			} else {
 				t = time.Date(t.Year(), t.Month(), *v.BaseDateCalcFixedDate, 0, 0, 0, 0, time.UTC)
 			}
 			break
+		}
+		if len(paymentTerms) == 0 {
+			return "", xerrors.Errorf("'paymentTerms'がありません。")
 		}
 		if i == len(paymentTerms)-1 {
 			return "", xerrors.Errorf("'data_platform_payment_terms_payment_terms_data'テーブルが不適切です。")
@@ -435,6 +427,9 @@ func (f *SubFunction) BusinessPartnerGeneralDeliveryRelation(
 		dataKey[i].DeliverFromParty = supplyChainRelationshipDeliveryRelation[i].DeliverFromParty
 	}
 
+	if len(dataKey) == 0 {
+		return xerrors.Errorf("BusinessPartnerGeneralDeliveryRelation'dataKey'がありません。")
+	}
 	repeat := strings.Repeat("?,", len(dataKey)-1) + "?"
 
 	for _, v := range dataKey {
@@ -495,6 +490,9 @@ func (f *SubFunction) BusinessPartnerGeneralBillingRelation(
 		dataKey[i].BillFromParty = supplyChainRelationshipBillingRelation[i].BillFromParty
 	}
 
+	if len(dataKey) == 0 {
+		return xerrors.Errorf("BusinessPartnerGeneralBillingRelation'dataKey'がありません。")
+	}
 	repeat := strings.Repeat("?,", len(dataKey)-1) + "?"
 
 	for _, v := range dataKey {
@@ -535,6 +533,9 @@ func (f *SubFunction) BusinessPartnerGeneralPaymentRelation(
 		dataKey[i].Payee = supplyChainRelationshipPaymentRelation[i].Payee
 	}
 
+	if len(dataKey) == 0 {
+		return xerrors.Errorf("BusinessPartnerGeneralPaymentRelation'dataKey'がありません。")
+	}
 	repeat := strings.Repeat("?,", len(dataKey)-1) + "?"
 
 	for _, v := range dataKey {

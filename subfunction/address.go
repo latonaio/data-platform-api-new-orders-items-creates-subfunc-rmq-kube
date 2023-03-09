@@ -50,6 +50,9 @@ func (f *SubFunction) Address(
 
 	dataKey.ValidityEndDate = getSystemDate()
 
+	if len(dataKey.AddressID) == 0 {
+		return nil, xerrors.Errorf("BusinessPartner取得時の'AddressID'がありません。")
+	}
 	repeat := strings.Repeat("?,", len(dataKey.AddressID)-1) + "?"
 	for _, v := range dataKey.AddressID {
 		args = append(args, v)
@@ -81,20 +84,13 @@ func (f *SubFunction) AddressFromInput(
 ) ([]*api_processing_data_formatter.Address, error) {
 	processFlag := false
 
-	calculateAddressID, err := f.CalculateAddressID(sdc, psdc)
-	if err != nil {
-		return nil, err
-	}
-
 	addressMasterdata := make([]*api_processing_data_formatter.AddressMaster, 0)
-	addressID := calculateAddressID.AddressID
 	for i, v := range sdc.Header.Address {
-		if v.PostalCode != nil || v.LocalRegion != nil || v.Country != nil || v.District != nil || v.StreetName != nil || v.CityName != nil {
-			if len(*v.PostalCode) != 0 || len(*v.LocalRegion) != 0 || len(*v.Country) != 0 || len(*v.District) != 0 || len(*v.StreetName) != 0 || len(*v.CityName) != 0 {
+		if v.PostalCode != nil && v.LocalRegion != nil && v.Country != nil && v.District != nil && v.StreetName != nil && v.CityName != nil {
+			if len(*v.PostalCode) != 0 && len(*v.LocalRegion) != 0 && len(*v.Country) != 0 && len(*v.District) != 0 && len(*v.StreetName) != 0 && len(*v.CityName) != 0 {
 				processFlag = true
-				datum := psdc.ConvertToAddressMaster(sdc, i, addressID)
+				datum := psdc.ConvertToAddressMaster(sdc, i)
 				addressMasterdata = append(addressMasterdata, datum)
-				addressID += 1
 			}
 		}
 	}
@@ -104,50 +100,18 @@ func (f *SubFunction) AddressFromInput(
 		return psdc.Address, nil
 	}
 
+	var err error
 	sessionID := sdc.RuntimeSessionID
 	for _, addressData := range addressMasterdata {
 		res, err := f.rmq.SessionKeepRequest(f.ctx, f.conf.RMQ.QueueToSQL(), map[string]interface{}{"message": addressData, "function": "Address", "runtime_session_id": sessionID})
 		if err != nil {
 			err = xerrors.Errorf("rmq error: %w", err)
-			f.l.Error(err)
-			return []*api_processing_data_formatter.Address{}, nil
+			return []*api_processing_data_formatter.Address{}, err
 		}
 		res.Success()
 	}
 
 	data := psdc.ConvertToAddressFromInput()
-
-	return data, err
-}
-func (f *SubFunction) CalculateAddressID(
-	sdc *api_input_reader.SDC,
-	psdc *api_processing_data_formatter.SDC,
-) (*api_processing_data_formatter.CalculateAddressID, error) {
-	dataKey := psdc.ConvertToCalculateAddressIDKey()
-
-	rows, err := f.db.Query(
-		`SELECT ServiceLabel, FieldNameWithNumberRange, LatestNumber
-		FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_number_range_latest_number_data
-		WHERE (ServiceLabel, FieldNameWithNumberRange) = (?, ?);`, dataKey.ServiceLabel, dataKey.FieldNameWithNumberRange,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	dataQueryGets, err := psdc.ConvertToCalculateAddressIDQueryGets(rows)
-	if err != nil {
-		return nil, err
-	}
-
-	if dataQueryGets.LatestNumber == nil {
-		return nil, xerrors.Errorf("LatestNumberがnullです。")
-	}
-
-	addressIDLatestNumber := dataQueryGets.LatestNumber
-	addressID := *dataQueryGets.LatestNumber + 1
-
-	data := psdc.ConvertToCalculateAddressID(addressIDLatestNumber, addressID)
 
 	return data, err
 }
