@@ -30,6 +30,8 @@ func ConvertToItem(
 	itemNetWeightMap := StructArrayToMap(psdc.ItemNetWeight, "Product")
 	productionPlantRelationProductMap := StructArrayToMap(psdc.ProductionPlantRelationProduct, "Product")
 	productionPlantProductMasterBPPlantMap := StructArrayToMap(psdc.ProductionPlantProductMasterBPPlant, "Product")
+	InspectionPlanMap := StructArrayToMap(psdc.InspectionPlan, "Product")
+	InspectionOrderMap := StructArrayToMap(psdc.InspectionOrder, "Product")
 	productTaxClassificationBillToCountryMap := StructArrayToMap(psdc.ProductTaxClassificationBillToCountry, "Product")
 	productTaxClassificationBillFromCountryMap := StructArrayToMap(psdc.ProductTaxClassificationBillFromCountry, "Product")
 	definedTaxClassificationMap := StructArrayToMap(psdc.DefinedTaxClassification, "Product")
@@ -39,6 +41,7 @@ func ConvertToItem(
 	taxAmounteMap := StructArrayToMap(psdc.TaxAmount, "Product")
 	grossAmountMap := StructArrayToMap(psdc.GrossAmount, "Product")
 	orderQuantityInDeliveryUnitMap := StructArrayToMap(psdc.OrderQuantityInDeliveryUnit, "OrderItem")
+	stockConfirmationStatusMap := StructArrayToMap(psdc.StockConfirmationStatus, "OrderItem")
 
 	items := make([]*Item, 0, len(sdc.Header.Item))
 	for i, v := range sdc.Header.Item {
@@ -55,9 +58,10 @@ func ConvertToItem(
 			continue
 		}
 		product := *v.Product
+		orderItem := psdc.OrderItem[i].OrderItemNumber
 
 		item.OrderID = sdc.Header.OrderID
-		item.OrderItem = psdc.OrderItem[i].OrderItemNumber
+		item.OrderItem = orderItem
 		item.OrderItemCategory = *productMasterGeneralMap[product].ItemCategory
 		item.SupplyChainRelationshipID = psdc.SupplyChainRelationshipGeneral[0].SupplyChainRelationshipID
 		item.SupplyChainRelationshipDeliveryPlantID = &psdc.SupplyChainRelationshipDeliveryPlantRelation[0].SupplyChainRelationshipDeliveryPlantID
@@ -84,13 +88,13 @@ func ConvertToItem(
 		item.DeliverToPlant = &psdc.SupplyChainRelationshipDeliveryPlantRelation[0].DeliverToPlant
 		item.DeliverFromPlant = &psdc.SupplyChainRelationshipDeliveryPlantRelation[0].DeliverFromPlant
 
-		item.OrderQuantityInDeliveryUnit = orderQuantityInDeliveryUnitMap[item.OrderItem].OrderQuantityInDeliveryUnit
+		item.OrderQuantityInDeliveryUnit = orderQuantityInDeliveryUnitMap[orderItem].OrderQuantityInDeliveryUnit
 		// item.StockConfirmationPolicy =  //TBD
-		// item.StockConfirmationStatus =  //TBD
+		item.StockConfirmationStatus = stockConfirmationStatusMap[orderItem].StockConfirmationStatus
 
 		item.ItemWeightUnit = productMasterGeneralMap[product].WeightUnit
 		item.ProductGrossWeight = productMasterGeneralMap[product].GrossWeight
-		item.ItemGrossWeight = itemGrossWeightMap[item.OrderItem].ItemGrossWeight
+		item.ItemGrossWeight = itemGrossWeightMap[orderItem].ItemGrossWeight
 		item.ProductNetWeight = productMasterGeneralMap[product].NetWeight
 		item.ItemNetWeight = itemNetWeightMap[product].ItemNetWeight
 		item.InternalCapacityQuantity = productMasterGeneralMap[product].InternalCapacityQuantity
@@ -160,8 +164,8 @@ func ConvertToItem(
 				}
 			}
 
-			if _, ok := confirmedOrderQuantityInBaseUnitMap[item.OrderItem]; ok {
-				item.ConfirmedOrderQuantityInBaseUnit = &confirmedOrderQuantityInBaseUnitMap[item.OrderItem].ConfirmedOrderQuantityInBaseUnit
+			if _, ok := confirmedOrderQuantityInBaseUnitMap[orderItem]; ok {
+				item.ConfirmedOrderQuantityInBaseUnit = &confirmedOrderQuantityInBaseUnitMap[orderItem].ConfirmedOrderQuantityInBaseUnit
 			}
 
 			if _, ok := stockConfPlantProductMasterBPPlantMap[product]; ok {
@@ -185,6 +189,16 @@ func ConvertToItem(
 				item.ProductIsBatchManagedInProductionPlant = productionPlantProductMasterBPPlantMap[product].IsBatchManagementRequired
 				item.BatchMgmtPolicyInProductionPlant = productionPlantProductMasterBPPlantMap[product].BatchManagementPolicy
 			}
+
+			if _, ok := InspectionPlanMap[product]; ok {
+				item.InspectionPlan = &InspectionPlanMap[product].InspectionPlan
+				item.InspectionPlant = &InspectionPlanMap[product].InspectionPlant
+			}
+
+			if _, ok := InspectionOrderMap[product]; ok {
+				item.InspectionOrder = &InspectionOrderMap[product].InspectionOrder
+			}
+
 		}
 
 		items = append(items, item)
@@ -333,7 +347,7 @@ func ConvertToItemScheduleLine(
 ) ([]*ItemScheduleLine, error) {
 	var err error
 
-	ordersItemScheduleLineMap := StructArrayToMap(psdc.OrdinaryStockConfirmationOrdersItemScheduleLine, "OrderItem")
+	ordersItemScheduleLineMap := StructArrayToMap(psdc.StockConfirmationOrdersItemScheduleLine, "OrderItem")
 
 	length := 0
 	for _, v := range sdc.Header.Item {
@@ -361,7 +375,6 @@ func ConvertToItemScheduleLine(
 			if item.Product == nil {
 				continue
 			}
-			// product := *item.Product
 
 			itemScheduleLine.OrderID = ordersItemScheduleLineMap[orderItemNumber].OrderID
 			itemScheduleLine.OrderItem = ordersItemScheduleLineMap[orderItemNumber].OrderItem
@@ -378,13 +391,17 @@ func ConvertToItemScheduleLine(
 			itemScheduleLine.RequestedDeliveryDate = ordersItemScheduleLineMap[orderItemNumber].RequestedDeliveryDate
 			itemScheduleLine.RequestedDeliveryTime = ordersItemScheduleLineMap[orderItemNumber].RequestedDeliveryTime
 			itemScheduleLine.ConfirmedDeliveryDate = ordersItemScheduleLineMap[orderItemNumber].ConfirmedDeliveryDate
-			itemScheduleLine.OriginalOrderQuantityInBaseUnit = ordersItemScheduleLineMap[orderItemNumber].OrderQuantityInBaseUnit
+			itemScheduleLine.ScheduleLineOrderQuantity = ordersItemScheduleLineMap[orderItemNumber].ScheduleLineOrderQuantity
+			itemScheduleLine.OriginalOrderQuantityInBaseUnit = ordersItemScheduleLineMap[orderItemNumber].OriginalOrderQuantityInBaseUnit
+			itemScheduleLine.ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit = ordersItemScheduleLineMap[orderItemNumber].ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit
 			itemScheduleLine.ConfirmedOrderQuantityByPDTAvailCheck = ordersItemScheduleLineMap[orderItemNumber].ConfirmedOrderQuantityByPDTAvailCheck
 			itemScheduleLine.DeliveredQuantityInBaseUnit = ordersItemScheduleLineMap[orderItemNumber].DeliveredQuantityInBaseUnit
 			itemScheduleLine.OpenConfirmedQuantityInBaseUnit = ordersItemScheduleLineMap[orderItemNumber].OpenConfirmedQuantityInBaseUnit
 			itemScheduleLine.StockIsFullyConfirmed = ordersItemScheduleLineMap[orderItemNumber].StockIsFullyConfirmed
 			itemScheduleLine.PlusMinusFlag = ordersItemScheduleLineMap[orderItemNumber].PlusMinusFlag
 			itemScheduleLine.ItemScheduleLineDeliveryBlockStatus = ordersItemScheduleLineMap[orderItemNumber].ItemScheduleLineDeliveryBlockStatus
+			itemScheduleLine.IsCancelled = ordersItemScheduleLineMap[orderItemNumber].IsCancelled
+			itemScheduleLine.IsMarkedForDeletion = ordersItemScheduleLineMap[orderItemNumber].IsMarkedForDeletion
 
 			itemScheduleLines = append(itemScheduleLines, itemScheduleLine)
 		}

@@ -580,6 +580,7 @@ func (psdc *SDC) ConvertToOrderItem(sdc *api_input_reader.SDC) []*OrderItem {
 		pm := &requests.OrderItem{}
 
 		pm.OrderItemNumber = i + 1
+		sdc.Header.Item[i].OrderItem = i + 1
 
 		data := pm
 		res = append(res, &OrderItem{
@@ -1263,33 +1264,37 @@ func (psdc *SDC) ConvertToTaxRate(rows *sql.Rows) ([]*TaxRate, error) {
 	return res, nil
 }
 
-func (psdc *SDC) ConvertToOrdinaryStockConfirmationKey(length int) []*OrdinaryStockConfirmationKey {
-	res := make([]*OrdinaryStockConfirmationKey, 0)
+func (psdc *SDC) ConvertToStockConfirmationKey() *StockConfirmationKey {
+	pm := &requests.StockConfirmationKey{}
 
-	for i := 0; i < length; i++ {
-		pm := &requests.OrdinaryStockConfirmationKey{}
-
-		data := pm
-		res = append(res, &OrdinaryStockConfirmationKey{
-			Product:                          data.Product,
-			StockConfirmationBusinessPartner: data.StockConfirmationBusinessPartner,
-			StockConfirmationPlant:           data.StockConfirmationPlant,
-			RequestedDeliveryDate:            data.RequestedDeliveryDate,
-		})
+	data := pm
+	res := &StockConfirmationKey{
+		OrderID:                          data.OrderID,
+		OrderItem:                        data.OrderItem,
+		Product:                          data.Product,
+		StockConfirmationBusinessPartner: data.StockConfirmationBusinessPartner,
+		StockConfirmationPlant:           data.StockConfirmationPlant,
+		ScheduleLineOrderQuantity:        data.ScheduleLineOrderQuantity,
+		RequestedDeliveryDate:            data.RequestedDeliveryDate,
+		StockConfirmationPlantBatch:      data.StockConfirmationPlantBatch,
+		StockConfirmationPlantBatchValidityStartDate: data.StockConfirmationPlantBatchValidityStartDate,
+		StockConfirmationPlantBatchValidityEndDate:   data.StockConfirmationPlantBatchValidityEndDate,
+		StockConfirmationIsLotUnit:                   data.StockConfirmationIsLotUnit,
+		StockConfirmationIsOrdinary:                  data.StockConfirmationIsOrdinary,
 	}
 
 	return res
 }
 
-func (psdc *SDC) ConvertToOrdinaryStockConfirmation(resData map[string]interface{}) (*OrdinaryStockConfirmation, error) {
-	pm := &requests.OrdinaryStockConfirmation{}
+func (psdc *SDC) ConvertToStockConfirmation(resData map[string]interface{}, stockConfirmationIsOrdinary, stockConfirmationIsLotUnit bool) (*StockConfirmation, error) {
+	pm := &requests.StockConfirmation{}
 
 	result := resData["result"].(bool)
 	if !result {
 		return nil, xerrors.Errorf(resData["message"].(string))
 	}
 
-	raw, err := json.Marshal(resData["message"].(map[string]interface{})["ProductStockAvailability"])
+	raw, err := json.Marshal(resData["message"].(map[string]interface{})["ProductStockAvailabilityCheck"])
 	if err != nil {
 		return nil, xerrors.Errorf("data marshal error :%#v", err.Error())
 	}
@@ -1298,30 +1303,129 @@ func (psdc *SDC) ConvertToOrdinaryStockConfirmation(resData map[string]interface
 		return nil, xerrors.Errorf("input data marshal error :%#v", err.Error())
 	}
 
+	pm.StockConfirmationIsOrdinary = stockConfirmationIsOrdinary
+	pm.StockConfirmationIsLotUnit = stockConfirmationIsLotUnit
+
 	data := pm
-	res := &OrdinaryStockConfirmation{
-		Product:                      data.Product,
-		BusinessPartner:              data.BusinessPartner,
-		Plant:                        data.Plant,
-		ProductStockAvailabilityDate: data.ProductStockAvailabilityDate,
-		AvailableProductStock:        data.AvailableProductStock,
+	res := &StockConfirmation{
+		BusinessPartner:                 data.BusinessPartner,
+		Product:                         data.Product,
+		Plant:                           data.Plant,
+		Batch:                           data.Batch,
+		RequestedQuantity:               data.RequestedQuantity,
+		ProductStockAvailabilityDate:    data.ProductStockAvailabilityDate,
+		OrderID:                         data.OrderID,
+		OrderItem:                       data.OrderItem,
+		Project:                         data.Project,
+		InventoryStockType:              data.InventoryStockType,
+		InventorySpecialStockType:       data.InventorySpecialStockType,
+		AvailableProductStock:           data.AvailableProductStock,
+		CheckedQuantity:                 data.CheckedQuantity,
+		CheckedDate:                     data.CheckedDate,
+		OpenConfirmedQuantityInBaseUnit: data.OpenConfirmedQuantityInBaseUnit,
+		StockIsFullyChecked:             data.StockIsFullyChecked,
+		Suffix:                          data.Suffix,
+		StockConfirmationIsLotUnit:      data.StockConfirmationIsLotUnit,
+		StockConfirmationIsOrdinary:     data.StockConfirmationIsOrdinary,
 	}
 
 	return res, nil
 }
 
-func (psdc *SDC) ConvertToOrdinaryStockConfirmationOrdersItemScheduleLine(orderID, orderItem, scheduleLine int, stockConfirmationPlantTimeZone *string, item api_input_reader.Item, stockConfPlantRelationProduct *StockConfPlantRelationProduct, ordinaryStockConfirmation *OrdinaryStockConfirmation) (*OrdersItemScheduleLine, error) {
+func (psdc *SDC) ConvertToLotUnitStockConfirmationOrdersItemScheduleLine(scheduleLine int, stockConfirmationPlantTimeZone *string, internalCapacityQuantity float32, item api_input_reader.Item, stockConfPlantRelationProduct *StockConfPlantRelationProduct, lotUnitStockConfirmation *StockConfirmation) (*OrdersItemScheduleLine, error) {
 	pm := &requests.OrdersItemScheduleLine{}
 
 	if item.RequestedDeliveryDate == nil {
 		return nil, xerrors.Errorf("入力ファイルの'RequestedDeliveryDate'がありません。")
-	} else if item.RequestedDeliveryTime == nil {
+	}
+	if item.RequestedDeliveryTime == nil {
 		return nil, xerrors.Errorf("入力ファイルの'RequestedDeliveryTime'がありません。")
-	} else if item.OrderQuantityInBaseUnit == nil {
+	}
+	if item.OrderQuantityInBaseUnit == nil {
 		return nil, xerrors.Errorf("入力ファイルの'OrderQuantityInBaseUnit'がありません。")
 	}
-	pm.OrderID = orderID
-	pm.OrderItem = orderItem
+	if item.ItemScheduleLine[0].ScheduleLineOrderQuantity == nil {
+		return nil, xerrors.Errorf("入力ファイルの'ScheduleLineOrderQuantity'がありません。")
+	}
+
+	pm.OrderID = lotUnitStockConfirmation.OrderID
+	pm.OrderItem = lotUnitStockConfirmation.OrderItem
+	pm.ScheduleLine = scheduleLine
+	pm.SupplyChainRelationshipID = stockConfPlantRelationProduct.SupplyChainRelationshipID
+	pm.SupplyChainRelationshipStockConfPlantID = stockConfPlantRelationProduct.SupplyChainRelationshipStockConfPlantID
+	pm.Product = lotUnitStockConfirmation.Product
+	pm.StockConfirmationBussinessPartner = lotUnitStockConfirmation.BusinessPartner
+	pm.StockConfirmationPlant = lotUnitStockConfirmation.Plant
+	pm.StockConfirmationPlantTimeZone = stockConfirmationPlantTimeZone
+	pm.StockConfirmationPlantBatch = &lotUnitStockConfirmation.Batch
+	pm.StockConfirmationPlantBatchValidityStartDate = item.StockConfirmationPlantBatchValidityStartDate
+	pm.StockConfirmationPlantBatchValidityEndDate = item.StockConfirmationPlantBatchValidityEndDate
+	pm.RequestedDeliveryDate = *item.RequestedDeliveryDate
+	pm.RequestedDeliveryTime = *item.RequestedDeliveryTime
+	pm.ConfirmedDeliveryDate = lotUnitStockConfirmation.ProductStockAvailabilityDate
+	pm.ScheduleLineOrderQuantity = *item.ItemScheduleLine[0].ScheduleLineOrderQuantity
+	pm.OriginalOrderQuantityInBaseUnit = *item.OrderQuantityInBaseUnit
+	pm.ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit = lotUnitStockConfirmation.CheckedQuantity * internalCapacityQuantity
+	pm.ConfirmedOrderQuantityByPDTAvailCheck = lotUnitStockConfirmation.CheckedQuantity
+	pm.DeliveredQuantityInBaseUnit = nil
+	pm.OpenConfirmedQuantityInBaseUnit = &lotUnitStockConfirmation.OpenConfirmedQuantityInBaseUnit
+	pm.StockIsFullyConfirmed = &lotUnitStockConfirmation.StockIsFullyChecked
+	pm.PlusMinusFlag = "-"
+	pm.ItemScheduleLineDeliveryBlockStatus = getBoolPtr(false)
+	pm.IsCancelled = getBoolPtr(false)
+	pm.IsMarkedForDeletion = getBoolPtr(false)
+
+	data := pm
+	res := &OrdersItemScheduleLine{
+		OrderID:                                         data.OrderID,
+		OrderItem:                                       data.OrderItem,
+		ScheduleLine:                                    data.ScheduleLine,
+		SupplyChainRelationshipID:                       data.SupplyChainRelationshipID,
+		SupplyChainRelationshipStockConfPlantID:         data.SupplyChainRelationshipStockConfPlantID,
+		Product:                                         data.Product,
+		StockConfirmationBussinessPartner:               data.StockConfirmationBussinessPartner,
+		StockConfirmationPlant:                          data.StockConfirmationPlant,
+		StockConfirmationPlantTimeZone:                  data.StockConfirmationPlantTimeZone,
+		StockConfirmationPlantBatch:                     data.StockConfirmationPlantBatch,
+		StockConfirmationPlantBatchValidityStartDate:    data.StockConfirmationPlantBatchValidityStartDate,
+		StockConfirmationPlantBatchValidityEndDate:      data.StockConfirmationPlantBatchValidityEndDate,
+		RequestedDeliveryDate:                           data.RequestedDeliveryDate,
+		RequestedDeliveryTime:                           data.RequestedDeliveryTime,
+		ConfirmedDeliveryDate:                           data.ConfirmedDeliveryDate,
+		ScheduleLineOrderQuantity:                       data.ScheduleLineOrderQuantity,
+		OriginalOrderQuantityInBaseUnit:                 data.OriginalOrderQuantityInBaseUnit,
+		ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit: data.ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit,
+		ConfirmedOrderQuantityByPDTAvailCheck:           data.ConfirmedOrderQuantityByPDTAvailCheck,
+		DeliveredQuantityInBaseUnit:                     data.DeliveredQuantityInBaseUnit,
+		OpenConfirmedQuantityInBaseUnit:                 data.OpenConfirmedQuantityInBaseUnit,
+		StockIsFullyConfirmed:                           data.StockIsFullyConfirmed,
+		PlusMinusFlag:                                   data.PlusMinusFlag,
+		ItemScheduleLineDeliveryBlockStatus:             data.ItemScheduleLineDeliveryBlockStatus,
+		IsCancelled:                                     data.IsCancelled,
+		IsMarkedForDeletion:                             data.IsMarkedForDeletion,
+	}
+
+	return res, nil
+}
+
+func (psdc *SDC) ConvertToOrdinaryStockConfirmationOrdersItemScheduleLine(scheduleLine int, stockConfirmationPlantTimeZone *string, internalCapacityQuantity float32, item api_input_reader.Item, stockConfPlantRelationProduct *StockConfPlantRelationProduct, ordinaryStockConfirmation *StockConfirmation) (*OrdersItemScheduleLine, error) {
+	pm := &requests.OrdersItemScheduleLine{}
+
+	if item.RequestedDeliveryDate == nil {
+		return nil, xerrors.Errorf("入力ファイルの'RequestedDeliveryDate'がありません。")
+	}
+	if item.RequestedDeliveryTime == nil {
+		return nil, xerrors.Errorf("入力ファイルの'RequestedDeliveryTime'がありません。")
+	}
+	if item.OrderQuantityInBaseUnit == nil {
+		return nil, xerrors.Errorf("入力ファイルの'OrderQuantityInBaseUnit'がありません。")
+	}
+	if item.ItemScheduleLine[0].ScheduleLineOrderQuantity == nil {
+		return nil, xerrors.Errorf("入力ファイルの'ScheduleLineOrderQuantity'がありません。")
+	}
+
+	pm.OrderID = ordinaryStockConfirmation.OrderID
+	pm.OrderItem = ordinaryStockConfirmation.OrderItem
 	pm.ScheduleLine = scheduleLine
 	pm.SupplyChainRelationshipID = stockConfPlantRelationProduct.SupplyChainRelationshipID
 	pm.SupplyChainRelationshipStockConfPlantID = stockConfPlantRelationProduct.SupplyChainRelationshipStockConfPlantID
@@ -1335,48 +1439,68 @@ func (psdc *SDC) ConvertToOrdinaryStockConfirmationOrdersItemScheduleLine(orderI
 	pm.RequestedDeliveryDate = *item.RequestedDeliveryDate
 	pm.RequestedDeliveryTime = *item.RequestedDeliveryTime
 	pm.ConfirmedDeliveryDate = ordinaryStockConfirmation.ProductStockAvailabilityDate
-	pm.OrderQuantityInBaseUnit = *item.OrderQuantityInBaseUnit
-	pm.ConfirmedOrderQuantityByPDTAvailCheck = ordinaryStockConfirmation.AvailableProductStock
+	pm.ScheduleLineOrderQuantity = *item.ItemScheduleLine[0].ScheduleLineOrderQuantity
+	pm.OriginalOrderQuantityInBaseUnit = *item.OrderQuantityInBaseUnit
+	pm.ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit = ordinaryStockConfirmation.CheckedQuantity * internalCapacityQuantity
+	pm.ConfirmedOrderQuantityByPDTAvailCheck = ordinaryStockConfirmation.CheckedQuantity
 	pm.DeliveredQuantityInBaseUnit = nil
-	pm.OpenConfirmedQuantityInBaseUnit = getFloat32Ptr(pm.OrderQuantityInBaseUnit - pm.ConfirmedOrderQuantityByPDTAvailCheck)
-	pm.StockIsFullyConfirmed = getBoolPtr(false)
+	pm.OpenConfirmedQuantityInBaseUnit = &ordinaryStockConfirmation.OpenConfirmedQuantityInBaseUnit
+	pm.StockIsFullyConfirmed = &ordinaryStockConfirmation.StockIsFullyChecked
 	pm.PlusMinusFlag = "-"
 	pm.ItemScheduleLineDeliveryBlockStatus = getBoolPtr(false)
-
-	if pm.ConfirmedOrderQuantityByPDTAvailCheck == 0 {
-		pm.ConfirmedDeliveryDate = *item.RequestedDeliveryDate
-	}
-	if *pm.OpenConfirmedQuantityInBaseUnit == 0 {
-		pm.StockIsFullyConfirmed = getBoolPtr(true)
-	}
+	pm.IsCancelled = getBoolPtr(false)
+	pm.IsMarkedForDeletion = getBoolPtr(false)
 
 	data := pm
 	res := &OrdersItemScheduleLine{
-		OrderID:                                      data.OrderID,
-		OrderItem:                                    data.OrderItem,
-		ScheduleLine:                                 data.ScheduleLine,
-		SupplyChainRelationshipID:                    data.SupplyChainRelationshipID,
-		SupplyChainRelationshipStockConfPlantID:      data.SupplyChainRelationshipStockConfPlantID,
-		Product:                                      data.Product,
-		StockConfirmationBussinessPartner:            data.StockConfirmationBussinessPartner,
-		StockConfirmationPlant:                       data.StockConfirmationPlant,
-		StockConfirmationPlantTimeZone:               data.StockConfirmationPlantTimeZone,
-		StockConfirmationPlantBatch:                  data.StockConfirmationPlantBatch,
-		StockConfirmationPlantBatchValidityStartDate: data.StockConfirmationPlantBatchValidityStartDate,
-		StockConfirmationPlantBatchValidityEndDate:   data.StockConfirmationPlantBatchValidityEndDate,
-		RequestedDeliveryDate:                        data.RequestedDeliveryDate,
-		RequestedDeliveryTime:                        data.RequestedDeliveryTime,
-		ConfirmedDeliveryDate:                        data.ConfirmedDeliveryDate,
-		OrderQuantityInBaseUnit:                      data.OrderQuantityInBaseUnit,
-		ConfirmedOrderQuantityByPDTAvailCheck:        data.ConfirmedOrderQuantityByPDTAvailCheck,
-		DeliveredQuantityInBaseUnit:                  data.DeliveredQuantityInBaseUnit,
-		OpenConfirmedQuantityInBaseUnit:              data.OpenConfirmedQuantityInBaseUnit,
-		StockIsFullyConfirmed:                        data.StockIsFullyConfirmed,
-		PlusMinusFlag:                                data.PlusMinusFlag,
-		ItemScheduleLineDeliveryBlockStatus:          data.ItemScheduleLineDeliveryBlockStatus,
+		OrderID:                                         data.OrderID,
+		OrderItem:                                       data.OrderItem,
+		ScheduleLine:                                    data.ScheduleLine,
+		SupplyChainRelationshipID:                       data.SupplyChainRelationshipID,
+		SupplyChainRelationshipStockConfPlantID:         data.SupplyChainRelationshipStockConfPlantID,
+		Product:                                         data.Product,
+		StockConfirmationBussinessPartner:               data.StockConfirmationBussinessPartner,
+		StockConfirmationPlant:                          data.StockConfirmationPlant,
+		StockConfirmationPlantTimeZone:                  data.StockConfirmationPlantTimeZone,
+		StockConfirmationPlantBatch:                     data.StockConfirmationPlantBatch,
+		StockConfirmationPlantBatchValidityStartDate:    data.StockConfirmationPlantBatchValidityStartDate,
+		StockConfirmationPlantBatchValidityEndDate:      data.StockConfirmationPlantBatchValidityEndDate,
+		RequestedDeliveryDate:                           data.RequestedDeliveryDate,
+		RequestedDeliveryTime:                           data.RequestedDeliveryTime,
+		ConfirmedDeliveryDate:                           data.ConfirmedDeliveryDate,
+		ScheduleLineOrderQuantity:                       data.ScheduleLineOrderQuantity,
+		OriginalOrderQuantityInBaseUnit:                 data.OriginalOrderQuantityInBaseUnit,
+		ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit: data.ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit,
+		ConfirmedOrderQuantityByPDTAvailCheck:           data.ConfirmedOrderQuantityByPDTAvailCheck,
+		DeliveredQuantityInBaseUnit:                     data.DeliveredQuantityInBaseUnit,
+		OpenConfirmedQuantityInBaseUnit:                 data.OpenConfirmedQuantityInBaseUnit,
+		StockIsFullyConfirmed:                           data.StockIsFullyConfirmed,
+		PlusMinusFlag:                                   data.PlusMinusFlag,
+		ItemScheduleLineDeliveryBlockStatus:             data.ItemScheduleLineDeliveryBlockStatus,
+		IsCancelled:                                     data.IsCancelled,
+		IsMarkedForDeletion:                             data.IsMarkedForDeletion,
 	}
 
 	return res, nil
+}
+
+func (psdc *SDC) ConvertToStockConfirmationStatus(ordersItemScheduleLine *OrdersItemScheduleLine, stockConfirmationStatus *string) *StockConfirmationStatus {
+	pm := &requests.StockConfirmationStatus{}
+
+	pm.OrderItem = ordersItemScheduleLine.OrderItem
+	pm.StockIsFullyConfirmed = ordersItemScheduleLine.StockIsFullyConfirmed
+	pm.ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit = ordersItemScheduleLine.ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit
+	pm.StockConfirmationStatus = stockConfirmationStatus
+
+	data := pm
+	res := StockConfirmationStatus{
+		OrderItem:             data.OrderItem,
+		StockIsFullyConfirmed: data.StockIsFullyConfirmed,
+		ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit: data.ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit,
+		StockConfirmationStatus:                         data.StockConfirmationStatus,
+	}
+
+	return &res
 }
 
 func (psdc *SDC) ConvertToConfirmedOrderQuantityInBaseUnit(orderItem int, confirmedOrderQuantityInBaseUnit float32) *ConfirmedOrderQuantityInBaseUnit {
@@ -1490,6 +1614,150 @@ func (psdc *SDC) ConvertToOrderItemTextByBuyerSeller(rows *sql.Rows) ([]*OrderIt
 	}
 	if i == 0 {
 		return nil, xerrors.Errorf("'data_platform_product_master_product_desc_by_bp_data'テーブルに対象のレコードが存在しません。")
+	}
+
+	return res, nil
+}
+
+func (psdc *SDC) ConvertToProductMasterQualityKey() *ProductMasterQualityKey {
+	pm := &requests.ProductMasterQualityKey{
+		IsMarkedForDeletion: false,
+	}
+
+	data := pm
+	res := ProductMasterQualityKey{
+		Product:             data.Product,
+		BusinessPartner:     data.BusinessPartner,
+		Plant:               data.Plant,
+		IsMarkedForDeletion: data.IsMarkedForDeletion,
+	}
+
+	return &res
+}
+
+func (psdc *SDC) ConvertToProductMasterQuality(rows *sql.Rows) ([]*ProductMasterQuality, error) {
+	defer rows.Close()
+	res := make([]*ProductMasterQuality, 0)
+
+	i := 0
+	for rows.Next() {
+		i++
+		pm := &requests.ProductMasterQuality{}
+
+		err := rows.Scan(
+			&pm.Product,
+			&pm.BusinessPartner,
+			&pm.Plant,
+			&pm.IsMarkedForDeletion,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		data := pm
+		res = append(res, &ProductMasterQuality{
+			Product:             data.Product,
+			BusinessPartner:     data.BusinessPartner,
+			Plant:               data.Plant,
+			IsMarkedForDeletion: data.IsMarkedForDeletion,
+		})
+	}
+	if i == 0 {
+		return nil, xerrors.Errorf("'data_platform_product_master_quality_data'テーブルに対象のレコードが存在しません。")
+	}
+
+	return res, nil
+}
+
+func (psdc *SDC) ConvertToInspectionPlanKey() *InspectionPlanKey {
+	pm := &requests.InspectionPlanKey{}
+
+	data := pm
+	res := InspectionPlanKey{
+		Product:         data.Product,
+		BusinessPartner: data.BusinessPartner,
+		Plant:           data.Plant,
+	}
+
+	return &res
+}
+
+func (psdc *SDC) ConvertToInspectionPlan(rows *sql.Rows) ([]*InspectionPlan, error) {
+	defer rows.Close()
+	res := make([]*InspectionPlan, 0)
+
+	i := 0
+	for rows.Next() {
+		i++
+		pm := &requests.InspectionPlan{}
+
+		err := rows.Scan(
+			&pm.InspectionPlantBusinessPartner,
+			&pm.InspectionPlan,
+			&pm.InspectionPlant,
+			&pm.Product,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		data := pm
+		res = append(res, &InspectionPlan{
+			InspectionPlantBusinessPartner: data.InspectionPlantBusinessPartner,
+			InspectionPlan:                 data.InspectionPlan,
+			InspectionPlant:                data.InspectionPlant,
+			Product:                        data.Product,
+		})
+	}
+	if i == 0 {
+		return nil, xerrors.Errorf("'data_platform_inspection_plan_header_data'テーブルに対象のレコードが存在しません。")
+	}
+
+	return res, nil
+}
+
+func (psdc *SDC) ConvertToInspectionOrderKey() *InspectionOrderKey {
+	pm := &requests.InspectionOrderKey{}
+
+	data := pm
+	res := InspectionOrderKey{
+		Product:         data.Product,
+		BusinessPartner: data.BusinessPartner,
+		Plant:           data.Plant,
+	}
+
+	return &res
+}
+
+func (psdc *SDC) ConvertToInspectionOrder(rows *sql.Rows) ([]*InspectionOrder, error) {
+	defer rows.Close()
+	res := make([]*InspectionOrder, 0)
+
+	i := 0
+	for rows.Next() {
+		i++
+		pm := &requests.InspectionOrder{}
+
+		err := rows.Scan(
+			&pm.InspectionOrder,
+			&pm.Product,
+			&pm.InspectionPlantBusinessPartner,
+			&pm.InspectionPlant,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		data := pm
+		res = append(res, &InspectionOrder{
+			InspectionOrder:                data.InspectionOrder,
+			Product:                        data.Product,
+			InspectionPlantBusinessPartner: data.InspectionPlantBusinessPartner,
+			InspectionPlant:                data.InspectionPlant,
+		})
+	}
+	if i == 0 {
+		return nil, xerrors.Errorf("'data_platform_inspection_order_header_data'テーブルに対象のレコードが存在しません。")
 	}
 
 	return res, nil

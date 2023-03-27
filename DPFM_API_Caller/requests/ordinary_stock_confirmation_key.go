@@ -1,8 +1,11 @@
 package requests
 
 type OrdinaryStockConfirmationKey struct {
-	Product                          string `json:"Product"`
-	StockConfirmationBusinessPartner int    `json:"StockConfirmationBusinessPartner"`
-	StockConfirmationPlant           string `json:"StockConfirmationPlant"`
-	RequestedDeliveryDate            string `json:"RequestedDeliveryDate"`
+	OrderID                          int     `json:"OrderID"`
+	OrderItem                        int     `json:"OrderItem"`
+	Product                          string  `json:"Product"`
+	StockConfirmationBusinessPartner int     `json:"StockConfirmationBusinessPartner"`
+	StockConfirmationPlant           string  `json:"StockConfirmationPlant"`
+	ScheduleLineOrderQuantity        float32 `json:"ScheduleLineOrderQuantity"`
+	RequestedDeliveryDate            string  `json:"RequestedDeliveryDate"`
 }

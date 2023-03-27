@@ -48,8 +48,9 @@ type SDC struct {
 	ItemNetWeight                                          []*ItemNetWeight                                       `json:"ItemNetWeight"`
 	TaxCode                                                []*TaxCode                                             `json:"TaxCode"`
 	TaxRate                                                []*TaxRate                                             `json:"TaxRate"`
-	OrdinaryStockConfirmation                              []*OrdinaryStockConfirmation                           `json:"OrdinaryStockConfirmation"`
-	OrdinaryStockConfirmationOrdersItemScheduleLine        []*OrdersItemScheduleLine                              `json:"OrdinaryStockConfirmationOrdersItemScheduleLine"`
+	StockConfirmation                                      []*StockConfirmation                                   `json:"StockConfirmation"`
+	StockConfirmationOrdersItemScheduleLine                []*OrdersItemScheduleLine                              `json:"StockConfirmationOrdersItemScheduleLine"`
+	StockConfirmationStatus                                []*StockConfirmationStatus                             `json:"StockConfirmationStatus"`
 	ConfirmedOrderQuantityInBaseUnit                       []*ConfirmedOrderQuantityInBaseUnit                    `json:"ConfirmedOrderQuantityInBaseUnit"`
 	ItemPricingDate                                        []*PricingDate                                         `json:"ItemPricingDate"`
 	ItemInvoiceDocumentDate                                []*ItemInvoiceDocumentDate                             `json:"ItemInvoiceDocumentDate"`
@@ -58,6 +59,9 @@ type SDC struct {
 	ItemReferenceDocument                                  []*ItemReferenceDocument                               `json:"ItemReferenceDocument"`
 	OrderItemTextByBuyer                                   []*OrderItemTextByBuyerSeller                          `json:"OrderItemTextByBuyer"`
 	OrderItemTextBySeller                                  []*OrderItemTextByBuyerSeller                          `json:"OrderItemTextBySeller"`
+	ProductMasterQuality                                   []*ProductMasterQuality                                `json:"ProductMasterQuality"`
+	InspectionPlan                                         []*InspectionPlan                                      `json:"InspectionPlan"`
+	InspectionOrder                                        []*InspectionOrder                                     `json:"InspectionOrder"`
 	PriceMaster                                            []*PriceMaster                                         `json:"PriceMaster"`
 	ConditionAmount                                        []*ConditionAmount                                     `json:"ConditionAmount"`
 	ConditionRateValue                                     []*ConditionRateValue                                  `json:"ConditionRateValue"`
@@ -444,78 +448,134 @@ type TaxRate struct {
 	TaxRate           *float32 `json:"TaxRate"`
 }
 
+type LotUnitStockConfirmationKey struct {
+	OrderID                                      int     `json:"OrderID"`
+	OrderItem                                    int     `json:"OrderItem"`
+	Product                                      string  `json:"Product"`
+	StockConfirmationBusinessPartner             int     `json:"StockConfirmationBusinessPartner"`
+	StockConfirmationPlant                       string  `json:"StockConfirmationPlant"`
+	ScheduleLineOrderQuantity                    float32 `json:"ScheduleLineOrderQuantity"`
+	RequestedDeliveryDate                        string  `json:"RequestedDeliveryDate"`
+	StockConfirmationPlantBatch                  string  `json:"StockConfirmationPlantBatch"`
+	StockConfirmationPlantBatchValidityStartDate string  `json:"StockConfirmationPlantBatchValidityStartDate"`
+	StockConfirmationPlantBatchValidityEndDate   string  `json:"StockConfirmationPlantBatchValidityEndDate"`
+}
+
 type OrdinaryStockConfirmationKey struct {
-	Product                          string `json:"Product"`
-	StockConfirmationBusinessPartner int    `json:"StockConfirmationBusinessPartner"`
-	StockConfirmationPlant           string `json:"StockConfirmationPlant"`
-	RequestedDeliveryDate            string `json:"RequestedDeliveryDate"`
+	OrderID                          int     `json:"OrderID"`
+	OrderItem                        int     `json:"OrderItem"`
+	Product                          string  `json:"Product"`
+	StockConfirmationBusinessPartner int     `json:"StockConfirmationBusinessPartner"`
+	StockConfirmationPlant           string  `json:"StockConfirmationPlant"`
+	ScheduleLineOrderQuantity        float32 `json:"ScheduleLineOrderQuantity"`
+	RequestedDeliveryDate            string  `json:"RequestedDeliveryDate"`
+}
+
+type StockConfirmationKey struct {
+	OrderID                                      int     `json:"OrderID"`
+	OrderItem                                    int     `json:"OrderItem"`
+	Product                                      string  `json:"Product"`
+	StockConfirmationBusinessPartner             int     `json:"StockConfirmationBusinessPartner"`
+	StockConfirmationPlant                       string  `json:"StockConfirmationPlant"`
+	ScheduleLineOrderQuantity                    float32 `json:"ScheduleLineOrderQuantity"`
+	RequestedDeliveryDate                        string  `json:"RequestedDeliveryDate"`
+	StockConfirmationPlantBatch                  string  `json:"StockConfirmationPlantBatch"`
+	StockConfirmationPlantBatchValidityStartDate string  `json:"StockConfirmationPlantBatchValidityStartDate"`
+	StockConfirmationPlantBatchValidityEndDate   string  `json:"StockConfirmationPlantBatchValidityEndDate"`
+	StockConfirmationIsLotUnit                   bool    `json:"StockConfirmationIsLotUnit"`
+	StockConfirmationIsOrdinary                  bool    `json:"StockConfirmationIsOrdinary"`
+}
+
+type StockConfirmation struct {
+	BusinessPartner                 int     `json:"BusinessPartner"`
+	Product                         string  `json:"Product"`
+	Plant                           string  `json:"Plant"`
+	Batch                           string  `json:"Batch"`
+	RequestedQuantity               float32 `json:"RequestedQuantity"`
+	ProductStockAvailabilityDate    string  `json:"ProductStockAvailabilityDate"`
+	OrderID                         int     `json:"OrderID"`
+	OrderItem                       int     `json:"OrderItem"`
+	Project                         string  `json:"Project"`
+	InventoryStockType              string  `json:"InventoryStockType"`
+	InventorySpecialStockType       string  `json:"InventorySpecialStockType"`
+	AvailableProductStock           float32 `json:"AvailableProductStock"`
+	CheckedQuantity                 float32 `json:"CheckedQuantity"`
+	CheckedDate                     string  `json:"CheckedDate"`
+	OpenConfirmedQuantityInBaseUnit float32 `json:"OpenConfirmedQuantityInBaseUnit"`
+	StockIsFullyChecked             bool    `json:"StockIsFullyChecked"`
+	Suffix                          string  `json:"Suffix"`
+	StockConfirmationIsLotUnit      bool    `json:"StockConfirmationIsLotUnit"`
+	StockConfirmationIsOrdinary     bool    `json:"StockConfirmationIsOrdinary"`
 }
 
 type ProductAvailabilityCheck struct {
-	ConnectionKey     string `json:"connection_key"`
-	Result            bool   `json:"result"`
-	RedisKey          string `json:"redis_key"`
-	Filepath          string `json:"filepath"`
-	APIStatusCode     int    `json:"api_status_code"`
-	RuntimeSessionID  string `json:"runtime_session_id"`
-	BusinessPartnerID *int   `json:"business_partner"`
-	ServiceLabel      string `json:"service_label"`
-	ProductStock      struct {
-		BusinessPartner           int     `json:"BusinessPartner"`
-		Product                   string  `json:"Product"`
-		Plant                     string  `json:"Plant"`
-		StorageLocation           *string `json:"StorageLocation"`
-		Batch                     *string `json:"Batch"`
-		OrderID                   *int    `json:"OrderID"`
-		OrderItem                 *int    `json:"OrderItem"`
-		Project                   *string `json:"Project"`
-		InventoryStockType        *string `json:"InventoryStockType"`
-		InventorySpecialStockType *string `json:"InventorySpecialStockType"`
-		ProductBaseUnit           *string `json:"ProductBaseUnit"`
-		ProductStock              *string `json:"ProductStock"`
-		Availability              struct {
-			BatchValidityEndDate         *string `json:"BatchValidityEndDate"`
-			ProductStockAvailabilityDate string  `json:"ProductStockAvailabilityDate"`
-			AvailableProductStock        *string `json:"AvailableProductStock"`
-		} `json:"Availability"`
-	} `json:"ProductStock"`
+	ConnectionKey                 string `json:"connection_key"`
+	Result                        bool   `json:"result"`
+	RedisKey                      string `json:"redis_key"`
+	Filepath                      string `json:"filepath"`
+	APIStatusCode                 int    `json:"api_status_code"`
+	RuntimeSessionID              string `json:"runtime_session_id"`
+	BusinessPartnerID             *int   `json:"business_partner"`
+	ServiceLabel                  string `json:"service_label"`
+	ProductStockAvailabilityCheck struct {
+		BusinessPartner                 *int     `json:"BusinessPartner"`
+		Product                         *string  `json:"Product"`
+		Plant                           *string  `json:"Plant"`
+		Batch                           *string  `json:"Batch"`
+		RequestedQuantity               *float32 `json:"RequestedQuantity"`
+		ProductStockAvailabilityDate    *string  `json:"ProductStockAvailabilityDate"`
+		OrderID                         *int     `json:"OrderID"`
+		OrderItem                       *int     `json:"OrderItem"`
+		Project                         *string  `json:"Project"`
+		InventoryStockType              *string  `json:"InventoryStockType"`
+		InventorySpecialStockType       *string  `json:"InventorySpecialStockType"`
+		AvailableProductStock           *float32 `json:"AvailableProductStock"`
+		CheckedQuantity                 *float32 `json:"CheckedQuantity"`
+		CheckedDate                     *string  `json:"CheckedDate"`
+		OpenConfirmedQuantityInBaseUnit *float32 `json:"OpenConfirmedQuantityInBaseUnit"`
+		StockIsFullyChecked             *bool    `json:"StockIsFullyChecked"`
+		Suffix                          *string  `json:"Suffix"`
+	} `json:"ProductStockAvailabilityCheck"`
 	APISchema        string   `json:"api_schema"`
 	Accepter         []string `json:"accepter"`
 	ProductStockCode string   `json:"product_stock_code"`
 	Deleted          bool     `json:"deleted"`
 }
 
-type OrdinaryStockConfirmation struct {
-	BusinessPartner              int     `json:"BusinessPartner"`
-	Product                      string  `json:"Product"`
-	Plant                        string  `json:"Plant"`
-	ProductStockAvailabilityDate string  `json:"ProductStockAvailabilityDate"`
-	AvailableProductStock        float32 `json:"AvailableProductStock"`
+type OrdersItemScheduleLine struct {
+	OrderID                                         int      `json:"OrderID"`
+	OrderItem                                       int      `json:"OrderItem"`
+	ScheduleLine                                    int      `json:"ScheduleLine"`
+	SupplyChainRelationshipID                       int      `json:"SupplyChainRelationshipID"`
+	SupplyChainRelationshipStockConfPlantID         int      `json:"SupplyChainRelationshipStockConfPlantID"`
+	Product                                         string   `json:"Product"`
+	StockConfirmationBussinessPartner               int      `json:"StockConfirmationBussinessPartner"`
+	StockConfirmationPlant                          string   `json:"StockConfirmationPlant"`
+	StockConfirmationPlantTimeZone                  *string  `json:"StockConfirmationPlantTimeZone"`
+	StockConfirmationPlantBatch                     *string  `json:"StockConfirmationPlantBatch"`
+	StockConfirmationPlantBatchValidityStartDate    *string  `json:"StockConfirmationPlantBatchValidityStartDate"`
+	StockConfirmationPlantBatchValidityEndDate      *string  `json:"StockConfirmationPlantBatchValidityEndDate"`
+	RequestedDeliveryDate                           string   `json:"RequestedDeliveryDate"`
+	RequestedDeliveryTime                           string   `json:"RequestedDeliveryTime"`
+	ConfirmedDeliveryDate                           string   `json:"ConfirmedDeliveryDate"`
+	ScheduleLineOrderQuantity                       float32  `json:"ScheduleLineOrderQuantity"`
+	OriginalOrderQuantityInBaseUnit                 float32  `json:"OriginalOrderQuantityInBaseUnit"`
+	ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit float32  `json:"ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit"`
+	ConfirmedOrderQuantityByPDTAvailCheck           float32  `json:"ConfirmedOrderQuantityByPDTAvailCheck"`
+	DeliveredQuantityInBaseUnit                     *float32 `json:"DeliveredQuantityInBaseUnit"`
+	OpenConfirmedQuantityInBaseUnit                 *float32 `json:"OpenConfirmedQuantityInBaseUnit"`
+	StockIsFullyConfirmed                           *bool    `json:"StockIsFullyConfirmed"`
+	PlusMinusFlag                                   string   `json:"PlusMinusFlag"`
+	ItemScheduleLineDeliveryBlockStatus             *bool    `json:"ItemScheduleLineDeliveryBlockStatus"`
+	IsCancelled                                     *bool    `json:"IsCancelled"`
+	IsMarkedForDeletion                             *bool    `json:"IsMarkedForDeletion"`
 }
 
-type OrdersItemScheduleLine struct {
-	OrderID                                      int      `json:"OrderID"`
-	OrderItem                                    int      `json:"OrderItem"`
-	ScheduleLine                                 int      `json:"ScheduleLine"`
-	SupplyChainRelationshipID                    int      `json:"SupplyChainRelationshipID"`
-	SupplyChainRelationshipStockConfPlantID      int      `json:"SupplyChainRelationshipStockConfPlantID"`
-	Product                                      string   `json:"Product"`
-	StockConfirmationBussinessPartner            int      `json:"StockConfirmationBussinessPartner"`
-	StockConfirmationPlant                       string   `json:"StockConfirmationPlant"`
-	StockConfirmationPlantTimeZone               *string  `json:"StockConfirmationPlantTimeZone"`
-	StockConfirmationPlantBatch                  *string  `json:"StockConfirmationPlantBatch"`
-	StockConfirmationPlantBatchValidityStartDate *string  `json:"StockConfirmationPlantBatchValidityStartDate"`
-	StockConfirmationPlantBatchValidityEndDate   *string  `json:"StockConfirmationPlantBatchValidityEndDate"`
-	RequestedDeliveryDate                        string   `json:"RequestedDeliveryDate"`
-	RequestedDeliveryTime                        string   `json:"RequestedDeliveryTime"`
-	ConfirmedDeliveryDate                        string   `json:"ConfirmedDeliveryDate"`
-	OrderQuantityInBaseUnit                      float32  `json:"OrderQuantityInBaseUnit"`
-	ConfirmedOrderQuantityByPDTAvailCheck        float32  `json:"ConfirmedOrderQuantityByPDTAvailCheck"`
-	DeliveredQuantityInBaseUnit                  *float32 `json:"DeliveredQuantityInBaseUnit"`
-	OpenConfirmedQuantityInBaseUnit              *float32 `json:"OpenConfirmedQuantityInBaseUnit"`
-	StockIsFullyConfirmed                        *bool    `json:"StockIsFullyConfirmed"`
-	PlusMinusFlag                                string   `json:"PlusMinusFlag"`
-	ItemScheduleLineDeliveryBlockStatus          *bool    `json:"ItemScheduleLineDeliveryBlockStatus"`
+type StockConfirmationStatus struct {
+	OrderItem                                       int     `json:"OrderItem"`
+	StockIsFullyConfirmed                           *bool   `json:"StockIsFullyConfirmed"`
+	ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit float32 `json:"ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit"`
+	StockConfirmationStatus                         *string `json:"StockConfirmationStatus"`
 }
 
 type ConfirmedOrderQuantityInBaseUnit struct {
@@ -543,6 +603,46 @@ type OrderItemTextByBuyerSeller struct {
 	BusinessPartner    int     `json:"BusinessPartner"`
 	Language           string  `json:"Language"`
 	ProductDescription *string `json:"ProductDescription"`
+}
+
+type ProductMasterQualityKey struct {
+	Product             []string `json:"Product"`
+	BusinessPartner     []int    `json:"BusinessPartner"`
+	Plant               []string `json:"Plant"`
+	IsMarkedForDeletion bool     `json:"IsMarkedForDeletion"`
+}
+
+type ProductMasterQuality struct {
+	Product             string `json:"Product"`
+	BusinessPartner     int    `json:"BusinessPartner"`
+	Plant               string `json:"Plant"`
+	IsMarkedForDeletion bool   `json:"IsMarkedForDeletion"`
+}
+
+type InspectionPlanKey struct {
+	Product         []string `json:"Product"`
+	BusinessPartner []int    `json:"BusinessPartner"`
+	Plant           []string `json:"Plant"`
+}
+
+type InspectionPlan struct {
+	InspectionPlantBusinessPartner int    `json:"InspectionPlantBusinessPartner"`
+	InspectionPlan                 int    `json:"InspectionPlan"`
+	InspectionPlant                string `json:"InspectionPlant"`
+	Product                        string `json:"Product"`
+}
+
+type InspectionOrderKey struct {
+	Product         []string `json:"Product"`
+	BusinessPartner []int    `json:"BusinessPartner"`
+	Plant           []string `json:"Plant"`
+}
+
+type InspectionOrder struct {
+	InspectionOrder                int    `json:"InspectionOrder"`
+	Product                        string `json:"Product"`
+	InspectionPlantBusinessPartner int    `json:"InspectionPlantBusinessPartner"`
+	InspectionPlant                string `json:"InspectionPlant"`
 }
 
 // Item Pricing Element

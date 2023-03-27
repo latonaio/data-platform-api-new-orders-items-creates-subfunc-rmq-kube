@@ -355,19 +355,22 @@ func (f *SubFunction) CreateSdc(
 					return
 				}
 
-				// 2-26-3-1,2-26-2-3-2. 在庫確認②(通常の在庫確認)  //2-7
-				psdc.OrdinaryStockConfirmation, e = f.OrdinaryStockConfirmation(sdc, psdc)
+				// 2-26-2-1,2-26-2-2,2-26-3-1,2-26-3-2. 在庫確認  //2-7
+				psdc.StockConfirmation, e = f.StockConfirmation(sdc, psdc)
 				if e != nil {
 					err = e
 					return
 				}
 
-				// 2-26-3-3. 納入日程行(Orders Item Schedule Line)の生成(通常の在庫確認)  //1-6,2-0,2-26-3-2
-				psdc.OrdinaryStockConfirmationOrdersItemScheduleLine, e = f.OrdinaryStockConfirmationOrdersItemScheduleLine(sdc, psdc)
+				// 2-26-2-3,2-26-3-3. 納入日程行(Orders Item Schedule Line)の生成  //1-6,2-0,2-4,2-26-3-2
+				psdc.StockConfirmationOrdersItemScheduleLine, e = f.StockConfirmationOrdersItemScheduleLine(sdc, psdc)
 				if e != nil {
 					err = e
 					return
 				}
+
+				// 2-26-2-4,2-26-3-4. オーダー明細への在庫確認済フラグ/在庫確認ステータスのセット  //2-26-2-3,2-26-3-3
+				psdc.StockConfirmationStatus = f.StockConfirmationStatus(sdc, psdc)
 
 				// 2-28. ConfirmedOrderQuantityInBaseUnit  //2-26-2-3,2-26-3-3
 				psdc.ConfirmedOrderQuantityInBaseUnit = f.ConfirmedOrderQuantityInBaseUnit(sdc, psdc)
@@ -438,6 +441,27 @@ func (f *SubFunction) CreateSdc(
 					err = e
 					return
 				}
+
+				//2-40-1 Inspection Plan, Inspection Plant //2-8-1
+				psdc.ProductMasterQuality, e = f.ProductMasterQuality(sdc, psdc)
+				if e != nil {
+					err = e
+					return
+				}
+
+				//2-40-2 Inspection Plan, Inspection Plant //2-8-1, 2-40-1
+				psdc.InspectionPlan, e = f.InspectionPlan(sdc, psdc)
+				if e != nil {
+					err = e
+					return
+				}
+
+				// //2-41. Inspection Order
+				// psdc.InspectionOrder, e = f.InspectionOrder(sdc, psdc)
+				// if e != nil {
+				// 	err = e
+				// 	return
+				// }
 			}(wg)
 
 			wg.Add(1)

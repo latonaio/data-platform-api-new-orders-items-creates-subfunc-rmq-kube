@@ -965,44 +965,79 @@ func (f *SubFunction) TaxRate(
 	return data, err
 }
 
-func (f *SubFunction) OrdinaryStockConfirmation(
+func (f *SubFunction) StockConfirmation(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
-) ([]*api_processing_data_formatter.OrdinaryStockConfirmation, error) {
+) ([]*api_processing_data_formatter.StockConfirmation, error) {
 	var err error
-	data := make([]*api_processing_data_formatter.OrdinaryStockConfirmation, 0)
+	dataKey := make([]*api_processing_data_formatter.StockConfirmationKey, 0)
+	data := make([]*api_processing_data_formatter.StockConfirmation, 0)
 
-	length := 0
-	for _, v := range psdc.StockConfPlantProductMasterBPPlant {
-		if v.IsBatchManagementRequired == nil {
+	stockConfPlantRelationProductMap := StructArrayToMap(psdc.StockConfPlantRelationProduct, "Product")
+	stockConfPlantProductMasterBPPlantMap := StructArrayToMap(psdc.StockConfPlantProductMasterBPPlant, "Product")
+	itemCategoryIsINVPMap := StructArrayToMap(psdc.ItemCategoryIsINVP, "Product")
+
+	for _, item := range sdc.Header.Item {
+		datumKey := psdc.ConvertToStockConfirmationKey()
+		if item.Product == nil || len(*item.Product) == 0 {
 			continue
 		}
-		if !*v.IsBatchManagementRequired {
-			length++
-		}
-	}
+		product := *item.Product
 
-	dataKey := psdc.ConvertToOrdinaryStockConfirmationKey(length)
-
-	inputItemMap := StructArrayToMap(sdc.Header.Item, "Product")
-
-	idx := 0
-	for _, v := range psdc.StockConfPlantProductMasterBPPlant {
-		if _, ok := inputItemMap[v.Product]; !ok {
+		if _, ok := stockConfPlantRelationProductMap[product]; !ok {
 			continue
 		}
-		if v.IsBatchManagementRequired == nil {
+		stockConfPlantRelationProduct := stockConfPlantRelationProductMap[product]
+		if _, ok := stockConfPlantProductMasterBPPlantMap[product]; !ok {
 			continue
 		}
-		if !*v.IsBatchManagementRequired {
-			dataKey[idx].Product = v.Product
-			dataKey[idx].StockConfirmationBusinessPartner = v.BusinessPartner
-			dataKey[idx].StockConfirmationPlant = v.Plant
-			if inputItemMap[v.Product].RequestedDeliveryDate == nil {
-				return nil, xerrors.Errorf("psdc.StockConfPlantProductMasterBPPlantのIsBatchManagementRequiredの'RequestedDeliveryDate'がありません。")
+		stockConfPlantProductMasterBPPlant := stockConfPlantProductMasterBPPlantMap[product]
+		if _, ok := itemCategoryIsINVPMap[product]; !ok {
+			continue
+		}
+		itemCategoryIsINVP := itemCategoryIsINVPMap[product]
+
+		if !itemCategoryIsINVP.ItemCategoryIsINVP {
+			continue
+		}
+
+		if stockConfPlantProductMasterBPPlant.IsBatchManagementRequired == nil {
+			continue
+		}
+		if !*stockConfPlantProductMasterBPPlant.IsBatchManagementRequired {
+			datumKey.OrderID = sdc.Header.OrderID
+			datumKey.OrderItem = item.OrderItem
+			datumKey.Product = product
+			datumKey.StockConfirmationBusinessPartner = stockConfPlantRelationProduct.StockConfirmationBusinessPartner
+			datumKey.StockConfirmationPlant = stockConfPlantRelationProduct.StockConfirmationPlant
+
+			datumKey.ScheduleLineOrderQuantity = *item.ItemScheduleLine[0].ScheduleLineOrderQuantity
+			if item.RequestedDeliveryDate == nil {
+				return nil, xerrors.Errorf("入力ファイルの'RequestedDeliveryDate'に値がありません。")
 			}
-			dataKey[idx].RequestedDeliveryDate = *inputItemMap[v.Product].RequestedDeliveryDate
-			idx++
+			datumKey.RequestedDeliveryDate = *item.RequestedDeliveryDate
+			datumKey.StockConfirmationIsOrdinary = true
+
+			dataKey = append(dataKey, datumKey)
+
+		} else if *stockConfPlantProductMasterBPPlant.IsBatchManagementRequired {
+			datumKey.OrderID = sdc.Header.OrderID
+			datumKey.OrderItem = item.OrderItem
+			datumKey.Product = product
+			datumKey.StockConfirmationBusinessPartner = stockConfPlantRelationProduct.StockConfirmationBusinessPartner
+			datumKey.StockConfirmationPlant = stockConfPlantRelationProduct.StockConfirmationPlant
+
+			datumKey.ScheduleLineOrderQuantity = *item.ItemScheduleLine[0].ScheduleLineOrderQuantity
+			if item.RequestedDeliveryDate == nil {
+				return nil, xerrors.Errorf("入力ファイルの'RequestedDeliveryDate'に値がありません。")
+			}
+			datumKey.RequestedDeliveryDate = *item.RequestedDeliveryDate
+			datumKey.StockConfirmationPlantBatch = *item.StockConfirmationPlantBatch
+			// datumKey.StockConfirmationPlantBatchValidityStartDate = *item.StockConfirmationPlantBatchValidityStartDate
+			// datumKey.StockConfirmationPlantBatchValidityEndDate = *item.StockConfirmationPlantBatchValidityEndDate
+			datumKey.StockConfirmationIsLotUnit = true
+
+			dataKey = append(dataKey, datumKey)
 		}
 	}
 
@@ -1012,10 +1047,26 @@ func (f *SubFunction) OrdinaryStockConfirmation(
 			err = xerrors.Errorf("request create error: %w", err)
 			return nil, err
 		}
-		req.ProductStock.BusinessPartner = v.StockConfirmationBusinessPartner
-		req.ProductStock.Product = v.Product
-		req.ProductStock.Plant = v.StockConfirmationPlant
-		req.ProductStock.Availability.ProductStockAvailabilityDate = v.RequestedDeliveryDate
+		if v.StockConfirmationIsOrdinary {
+			req.ProductStockAvailabilityCheck.BusinessPartner = &v.StockConfirmationBusinessPartner
+			req.ProductStockAvailabilityCheck.Product = &v.Product
+			req.ProductStockAvailabilityCheck.Plant = &v.StockConfirmationPlant
+			req.ProductStockAvailabilityCheck.RequestedQuantity = &v.ScheduleLineOrderQuantity
+			req.ProductStockAvailabilityCheck.ProductStockAvailabilityDate = &v.RequestedDeliveryDate
+			req.ProductStockAvailabilityCheck.OrderID = &v.OrderID
+			req.ProductStockAvailabilityCheck.OrderItem = &v.OrderItem
+		} else if v.StockConfirmationIsLotUnit {
+			req.ProductStockAvailabilityCheck.BusinessPartner = &v.StockConfirmationBusinessPartner
+			req.ProductStockAvailabilityCheck.Product = &v.Product
+			req.ProductStockAvailabilityCheck.Plant = &v.StockConfirmationPlant
+			req.ProductStockAvailabilityCheck.Batch = &v.StockConfirmationPlantBatch
+			req.ProductStockAvailabilityCheck.RequestedQuantity = &v.ScheduleLineOrderQuantity
+			req.ProductStockAvailabilityCheck.ProductStockAvailabilityDate = &v.RequestedDeliveryDate
+			req.ProductStockAvailabilityCheck.OrderID = &v.OrderID
+			req.ProductStockAvailabilityCheck.OrderItem = &v.OrderItem
+		} else {
+			continue
+		}
 
 		res, err := f.rmq.SessionKeepRequest(f.ctx, "data-platform-function-product-stock-availability-check-queue", req)
 		if err != nil {
@@ -1024,7 +1075,7 @@ func (f *SubFunction) OrdinaryStockConfirmation(
 		}
 		res.Success()
 
-		datum, err := psdc.ConvertToOrdinaryStockConfirmation(res.Data())
+		datum, err := psdc.ConvertToStockConfirmation(res.Data(), v.StockConfirmationIsOrdinary, v.StockConfirmationIsLotUnit)
 		if err != nil {
 			return nil, err
 		}
@@ -1035,7 +1086,7 @@ func (f *SubFunction) OrdinaryStockConfirmation(
 	return data, err
 }
 
-func (f *SubFunction) OrdinaryStockConfirmationOrdersItemScheduleLine(
+func (f *SubFunction) StockConfirmationOrdersItemScheduleLine(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
 ) ([]*api_processing_data_formatter.OrdersItemScheduleLine, error) {
@@ -1043,34 +1094,50 @@ func (f *SubFunction) OrdinaryStockConfirmationOrdersItemScheduleLine(
 	data := make([]*api_processing_data_formatter.OrdersItemScheduleLine, 0)
 
 	stockConfPlantRelationProductMap := StructArrayToMap(psdc.StockConfPlantRelationProduct, "Product")
-	ordinaryStockConfirmationMap := StructArrayToMap(psdc.OrdinaryStockConfirmation, "Product")
+	stockConfirmationMap := StructArrayToMap(psdc.StockConfirmation, "OrderItem")
+	productMasterGeneralMap := StructArrayToMap(psdc.ProductMasterGeneral, "Product")
 
 	idx := 1
-	for i, item := range sdc.Header.Item {
-		if item.Product == nil || item.RequestedDeliveryDate == nil || item.OrderQuantityInBaseUnit == nil {
+	for _, item := range sdc.Header.Item {
+		if item.Product == nil {
 			continue
 		}
 		if _, ok := stockConfPlantRelationProductMap[*item.Product]; !ok {
 			continue
 		}
-		if _, ok := ordinaryStockConfirmationMap[*item.Product]; !ok {
+		if _, ok := productMasterGeneralMap[*item.Product]; !ok {
 			continue
 		}
+		if _, ok := stockConfirmationMap[item.OrderItem]; !ok {
+			continue
+		}
+		stockConfirmation := stockConfirmationMap[item.OrderItem]
 
-		orderID := sdc.Header.OrderID
-		orderItem := psdc.OrderItem[i].OrderItemNumber
 		scheduleLine := idx
 		stockConfirmationPlantTimeZone := new(string)
 		for _, v := range psdc.StockConfirmationPlantTimeZone {
-			if v.BusinessPartner == ordinaryStockConfirmationMap[*item.Product].BusinessPartner && v.Plant == ordinaryStockConfirmationMap[*item.Product].Plant {
+			if v.BusinessPartner == stockConfirmation.BusinessPartner && v.Plant == stockConfirmation.Plant {
 				stockConfirmationPlantTimeZone = v.TimeZone
 			}
 		}
+		if productMasterGeneralMap[*item.Product].InternalCapacityQuantity == nil {
+			continue
+		}
+		internalCapacityQuantity := *productMasterGeneralMap[*item.Product].InternalCapacityQuantity
+
 		stockConfPlantRelationProduct := stockConfPlantRelationProductMap[*item.Product]
-		ordinaryStockConfirmation := ordinaryStockConfirmationMap[*item.Product]
-		datum, err := psdc.ConvertToOrdinaryStockConfirmationOrdersItemScheduleLine(orderID, orderItem, scheduleLine, stockConfirmationPlantTimeZone, item, stockConfPlantRelationProduct, ordinaryStockConfirmation)
-		if err != nil {
-			return nil, err
+
+		var datum *api_processing_data_formatter.OrdersItemScheduleLine
+		if stockConfirmation.StockConfirmationIsOrdinary {
+			datum, err = psdc.ConvertToOrdinaryStockConfirmationOrdersItemScheduleLine(scheduleLine, stockConfirmationPlantTimeZone, internalCapacityQuantity, item, stockConfPlantRelationProduct, stockConfirmation)
+			if err != nil {
+				return nil, err
+			}
+		} else if stockConfirmation.StockConfirmationIsLotUnit {
+			datum, err = psdc.ConvertToLotUnitStockConfirmationOrdersItemScheduleLine(scheduleLine, stockConfirmationPlantTimeZone, internalCapacityQuantity, item, stockConfPlantRelationProduct, stockConfirmation)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		data = append(data, datum)
@@ -1078,6 +1145,30 @@ func (f *SubFunction) OrdinaryStockConfirmationOrdersItemScheduleLine(
 	}
 
 	return data, err
+}
+
+func (f *SubFunction) StockConfirmationStatus(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) []*api_processing_data_formatter.StockConfirmationStatus {
+	data := make([]*api_processing_data_formatter.StockConfirmationStatus, 0)
+
+	stockConfirmationOrdersItemScheduleLine := psdc.StockConfirmationOrdersItemScheduleLine
+
+	for _, v := range stockConfirmationOrdersItemScheduleLine {
+		stockConfirmationStatus := getStringPtr("PP")
+		if v.StockIsFullyConfirmed != nil {
+			if *v.StockIsFullyConfirmed {
+				stockConfirmationStatus = getStringPtr("CL")
+			} else if !*v.StockIsFullyConfirmed && v.ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit == 0 {
+				stockConfirmationStatus = getStringPtr("NP")
+			}
+		}
+		datum := psdc.ConvertToStockConfirmationStatus(v, stockConfirmationStatus)
+		data = append(data, datum)
+	}
+
+	return data
 }
 
 func (f *SubFunction) ItemPricingDate(
@@ -1103,7 +1194,7 @@ func (f *SubFunction) ConfirmedOrderQuantityInBaseUnit(
 	data := make([]*api_processing_data_formatter.ConfirmedOrderQuantityInBaseUnit, 0)
 
 	itemCategoryIsINVPMap := StructArrayToMap(psdc.ItemCategoryIsINVP, "Product")
-	for _, v := range psdc.OrdinaryStockConfirmationOrdersItemScheduleLine {
+	for _, v := range psdc.StockConfirmationOrdersItemScheduleLine {
 		if itemCategoryIsINVPMap[v.Product].ItemCategoryIsINVP {
 			datum := psdc.ConvertToConfirmedOrderQuantityInBaseUnit(v.OrderItem, v.ConfirmedOrderQuantityByPDTAvailCheck)
 
@@ -1531,6 +1622,140 @@ func (f *SubFunction) OrderQuantityInDeliveryUnit(
 	}
 
 	return data, nil
+}
+
+func (f *SubFunction) ProductMasterQuality(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) ([]*api_processing_data_formatter.ProductMasterQuality, error) {
+	args := make([]interface{}, 0)
+
+	dataKey := psdc.ConvertToProductMasterQualityKey()
+
+	for _, v := range psdc.ProductionPlantRelationProduct {
+		dataKey.Product = append(dataKey.Product, v.Product)
+		dataKey.BusinessPartner = append(dataKey.BusinessPartner, v.ProductionPlantBusinessPartner)
+		dataKey.Plant = append(dataKey.Plant, v.ProductionPlant)
+	}
+
+	if len(dataKey.Product) == 0 {
+		return nil, xerrors.Errorf("ProductionPlantRelationProduct'Product'がありません。")
+	}
+	repeat1 := strings.Repeat("(?,?,?),", len(dataKey.Product)-1) + "(?,?,?)"
+	for i := range dataKey.Product {
+		args = append(args, dataKey.Product[i], dataKey.BusinessPartner[i], dataKey.Plant[i])
+	}
+	args = append(args, dataKey.IsMarkedForDeletion)
+
+	count := new(int)
+	err := f.db.QueryRow(
+		`SELECT COUNT(*)
+		FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_product_master_quality_data
+		WHERE (Product, BusinessPartner, Plant) IN ( `+repeat1+` )
+		AND IsMarkedForDeletion = ?;`, args...,
+	).Scan(&count)
+	if err != nil {
+		return nil, err
+	}
+	if *count == 0 {
+		return nil, nil
+	}
+
+	rows, err := f.db.Query(
+		`SELECT Product, BusinessPartner, Plant, IsMarkedForDeletion
+		FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_product_master_quality_data
+		WHERE (Product, BusinessPartner, Plant) IN ( `+repeat1+` )
+		AND IsMarkedForDeletion = ?;`, args...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	data, err := psdc.ConvertToProductMasterQuality(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, err
+}
+
+func (f *SubFunction) InspectionPlan(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) ([]*api_processing_data_formatter.InspectionPlan, error) {
+	args := make([]interface{}, 0)
+
+	if len(psdc.ProductMasterQuality) == 0 {
+		return nil, xerrors.Errorf("ProductMasterQualityのデータがありません。")
+	}
+
+	dataKey := psdc.ConvertToInspectionPlanKey()
+
+	for _, v := range psdc.ProductionPlantRelationProduct {
+		dataKey.Product = append(dataKey.Product, v.Product)
+		dataKey.BusinessPartner = append(dataKey.BusinessPartner, v.ProductionPlantBusinessPartner)
+		dataKey.Plant = append(dataKey.Plant, v.ProductionPlant)
+	}
+
+	repeat1 := strings.Repeat("(?,?,?),", len(dataKey.Product)-1) + "(?,?,?)"
+	for i := range dataKey.Product {
+		args = append(args, dataKey.Product[i], dataKey.BusinessPartner[i], dataKey.Plant[i])
+	}
+
+	rows, err := f.db.Query(
+		`SELECT InspectionPlantBusinessPartner, InspectionPlan, InspectionPlant, Product
+		FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_inspection_plan_header_data
+		WHERE (Product, BusinessPartner, Plant) IN ( `+repeat1+` );`, args...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	data, err := psdc.ConvertToInspectionPlan(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, err
+}
+
+func (f *SubFunction) InspectionOrder(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) ([]*api_processing_data_formatter.InspectionOrder, error) {
+	args := make([]interface{}, 0)
+
+	dataKey := psdc.ConvertToInspectionOrderKey()
+
+	for _, v := range psdc.InspectionPlan {
+		dataKey.Product = append(dataKey.Product, v.Product)
+		dataKey.BusinessPartner = append(dataKey.BusinessPartner, v.InspectionPlantBusinessPartner)
+		dataKey.Plant = append(dataKey.Plant, v.InspectionPlant)
+	}
+
+	repeat1 := strings.Repeat("(?,?,?),", len(dataKey.Product)-1) + "(?,?,?)"
+	for i := range dataKey.Product {
+		args = append(args, dataKey.Product[i], dataKey.BusinessPartner[i], dataKey.Plant[i])
+	}
+
+	rows, err := f.db.Query(
+		`SELECT InspectionOrder, Product, InspectionPlantBusinessPartner, InspectionPlant
+		FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_inspection_order_header_data
+		WHERE (Product, BusinessPartner, Plant) IN ( `+repeat1+` );`, args...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	data, err := psdc.ConvertToInspectionOrder(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, err
 }
 
 // 日付等の処理

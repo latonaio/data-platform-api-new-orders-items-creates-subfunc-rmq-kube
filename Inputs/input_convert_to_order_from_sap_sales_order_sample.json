@@ -207,7 +207,7 @@
             "RequestedDeliveryDate": "2023-02-15",
             "RequestedDeliveryTime": "12:30:00",
             "ConfirmedDeliveryDate": "2022-02-20",
-            "ScheduleLineOrderQuantity": null,
+            "ScheduleLineOrderQuantity": 10,
             "OriginalOrderQuantityInBaseUnit": 20,
             "ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit": null,
             "ConfirmedOrderQuantityByPDTAvailCheck": 20,

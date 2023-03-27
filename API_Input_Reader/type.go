@@ -136,6 +136,7 @@ type Item struct {
 	ServicesRenderingDate                         *string              `json:"ServicesRenderingDate"`
 	OrderQuantityInBaseUnit                       *float32             `json:"OrderQuantityInBaseUnit"`
 	OrderQuantityInDeliveryUnit                   *float32             `json:"OrderQuantityInDeliveryUnit"`
+	QuantityPerPackage                            *float32             `json:"QuantityPerPackage"`
 	StockConfirmationPolicy                       *string              `json:"StockConfirmationPolicy"`
 	StockConfirmationStatus                       *string              `json:"StockConfirmationStatus"`
 	ConfirmedOrderQuantityInBaseUnit              *float32             `json:"ConfirmedOrderQuantityInBaseUnit"`

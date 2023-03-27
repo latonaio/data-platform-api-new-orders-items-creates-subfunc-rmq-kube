@@ -10,7 +10,7 @@
     "message": {
         "Item": [
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "OrderItem": 1,
                 "OrderItemCategory": "INVP",
                 "SupplyChainRelationshipID": 100000000,
@@ -31,14 +31,14 @@
                 "RequestedDeliveryTime": "12:30:00",
                 "DeliverToParty": 102,
                 "DeliverFromParty": 201,
-                "CreationDate": "2023-03-04",
-                "CreationTime": "08:37:04",
-                "LastChangeDate": "2023-03-04",
-                "LastChangeTime": "08:37:04",
+                "CreationDate": "2023-03-25",
+                "CreationTime": "16:35:38",
+                "LastChangeDate": "2023-03-25",
+                "LastChangeTime": "16:35:38",
                 "DeliverToPlant": "AB02",
                 "DeliverToPlantTimeZone": "JST",
                 "DeliverToPlantStorageLocation": "0001",
-                "ProductIsBatchManagedInDeliverToPlant": false,
+                "ProductIsBatchManagedInDeliverToPlant": true,
                 "BatchMgmtPolicyInDeliverToPlant": "0001",
                 "DeliverToPlantBatch": null,
                 "DeliverToPlantBatchValidityStartDate": null,
@@ -59,7 +59,7 @@
                 "StockConfirmationBusinessPartner": 102,
                 "StockConfirmationPlant": "AB02",
                 "StockConfirmationPlantTimeZone": "JST",
-                "ProductIsBatchManagedInStockConfirmationPlant": false,
+                "ProductIsBatchManagedInStockConfirmationPlant": true,
                 "BatchMgmtPolicyInStockConfirmationPlant": "0001",
                 "StockConfirmationPlantBatch": "A001",
                 "StockConfirmationPlantBatchValidityStartDate": null,
@@ -69,9 +69,10 @@
                 "ServicesRenderingDate": null,
                 "OrderQuantityInBaseUnit": 15,
                 "OrderQuantityInDeliveryUnit": 15,
+                "QuantityPerPackage": 0,
                 "StockConfirmationPolicy": null,
-                "StockConfirmationStatus": null,
-                "ConfirmedOrderQuantityInBaseUnit": 13,
+                "StockConfirmationStatus": "CL",
+                "ConfirmedOrderQuantityInBaseUnit": 10,
                 "ItemWeightUnit": "G",
                 "ProductGrossWeight": 100.05,
                 "ItemGrossWeight": 1500.75,
@@ -94,8 +95,8 @@
                 "ProductionPlantBatchValidityStartTime": null,
                 "ProductionPlantBatchValidityEndDate": null,
                 "ProductionPlantBatchValidityEndTime": null,
-                "InspectionPlan": null,
-                "InspectionPlant": null,
+                "InspectionPlan": 99,
+                "InspectionPlant": "XX99",
                 "InspectionOrder": null,
                 "Incoterms": "CIF",
                 "TransactionTaxClassification": "1",
@@ -131,7 +132,7 @@
         ],
         "ItemPricingElement": [
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "OrderItem": 1,
                 "SupplyChainRelationshipID": 100000000,
                 "Buyer": 101,
@@ -151,7 +152,7 @@
                 "ConditionIsManuallyChanged": false
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "OrderItem": 1,
                 "SupplyChainRelationshipID": 100000000,
                 "Buyer": 101,
@@ -173,7 +174,7 @@
         ],
         "ItemScheduleLine": [
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "OrderItem": 1,
                 "ScheduleLine": 1,
                 "SupplyChainRelationshipID": 100000000,
@@ -182,29 +183,29 @@
                 "StockConfirmationBussinessPartner": 102,
                 "StockConfirmationPlant": "AB02",
                 "StockConfirmationPlantTimeZone": "JST",
-                "StockConfirmationPlantBatch": "",
+                "StockConfirmationPlantBatch": "A001",
                 "StockConfirmationPlantBatchValidityStartDate": null,
                 "StockConfirmationPlantBatchValidityEndDate": null,
                 "RequestedDeliveryDate": "2023-02-15",
                 "RequestedDeliveryTime": "12:30:00",
                 "ConfirmedDeliveryDate": "2023-02-15",
-                "ScheduleLineOrderQuantity": 0,
+                "ScheduleLineOrderQuantity": 10,
                 "OriginalOrderQuantityInBaseUnit": 15,
-                "ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit": 0,
-                "ConfirmedOrderQuantityByPDTAvailCheck": 13,
+                "ConfirmedOrderQuantityByPDTAvailCheckInBaseUnit": 20,
+                "ConfirmedOrderQuantityByPDTAvailCheck": 10,
                 "DeliveredQuantityInBaseUnit": null,
                 "UndeliveredQuantityInBaseUnit": null,
-                "OpenConfirmedQuantityInBaseUnit": 2,
-                "StockIsFullyConfirmed": false,
+                "OpenConfirmedQuantityInBaseUnit": 0,
+                "StockIsFullyConfirmed": true,
                 "PlusMinusFlag": "-",
                 "ItemScheduleLineDeliveryBlockStatus": false,
-                "IsCancelled": null,
-                "IsMarkedForDeletion": null
+                "IsCancelled": false,
+                "IsMarkedForDeletion": false
             }
         ],
         "Partner": [
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "BUYER",
                 "BusinessPartner": 101,
                 "BusinessPartnerFullName": "株式会社ローソン本社",
@@ -217,7 +218,7 @@
                 "AddressID": 700010001
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "SELLER",
                 "BusinessPartner": 201,
                 "BusinessPartnerFullName": "山崎製パン株式会社",
@@ -230,7 +231,7 @@
                 "AddressID": 700020001
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "DELIVER_TO",
                 "BusinessPartner": 102,
                 "BusinessPartnerFullName": "株式会社ローソン虎ノ門店",
@@ -243,7 +244,7 @@
                 "AddressID": 700010002
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "DELIVER_FROM",
                 "BusinessPartner": 201,
                 "BusinessPartnerFullName": "山崎製パン株式会社",
@@ -256,7 +257,7 @@
                 "AddressID": 700020001
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "BILL_TO",
                 "BusinessPartner": 101,
                 "BusinessPartnerFullName": "株式会社ローソン本社",
@@ -269,10 +270,10 @@
                 "AddressID": 700010001
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "BILL_TO",
                 "BusinessPartner": 102,
-                "BusinessPartnerFullName": " 株式会社ローソン虎ノ門店",
+                "BusinessPartnerFullName": "株式会社ローソン虎ノ門店",
                 "BusinessPartnerName": "ローソン虎ノ門店",
                 "Organization": null,
                 "Country": "JP",
@@ -282,7 +283,7 @@
                 "AddressID": 700010002
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "BILL_FROM",
                 "BusinessPartner": 201,
                 "BusinessPartnerFullName": "山崎製パン株式会社",
@@ -295,7 +296,7 @@
                 "AddressID": 700020001
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "PAYER",
                 "BusinessPartner": 101,
                 "BusinessPartnerFullName": "株式会社ローソン本社",
@@ -308,7 +309,7 @@
                 "AddressID": 700010001
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "PAYEE",
                 "BusinessPartner": 201,
                 "BusinessPartnerFullName": "山崎製パン株式会社",
@@ -321,7 +322,7 @@
                 "AddressID": 700020001
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "STOCK_CONFIRMATION",
                 "BusinessPartner": 101,
                 "BusinessPartnerFullName": "株式会社ローソン本社",
@@ -334,7 +335,7 @@
                 "AddressID": 700010001
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "STOCK_CONFIRMATION",
                 "BusinessPartner": 102,
                 "BusinessPartnerFullName": "株式会社ローソン虎ノ門店",
@@ -347,7 +348,7 @@
                 "AddressID": 700010002
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "PartnerFunction": "MANUFACTURER",
                 "BusinessPartner": 201,
                 "BusinessPartnerFullName": "山崎製パン株式会社",
@@ -362,7 +363,7 @@
         ],
         "Address": [
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "AddressID": 700010001,
                 "PostalCode": "141-8643",
                 "LocalRegion": "13",
@@ -375,7 +376,7 @@
                 "Room": null
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "AddressID": 700010002,
                 "PostalCode": "105-0001",
                 "LocalRegion": "13",
@@ -388,7 +389,7 @@
                 "Room": null
             },
             {
-                "OrderID": 132,
+                "OrderID": 1,
                 "AddressID": 700020001,
                 "PostalCode": "101-8585",
                 "LocalRegion": "13",
@@ -413,6 +414,6 @@
     "subfunc_error": "",
     "exconf_result": null,
     "exconf_error": "",
-    "api_processing_result": null,
+    "api_processing_result": true,
     "api_processing_error": ""
 }
