@@ -5,6 +5,7 @@ import (
 	"data-platform-api-orders-items-creates-subfunc-rmq-kube/DPFM_API_Caller/requests"
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"golang.org/x/xerrors"
 )
@@ -1264,6 +1265,314 @@ func (psdc *SDC) ConvertToTaxRate(rows *sql.Rows) ([]*TaxRate, error) {
 	return res, nil
 }
 
+func (psdc *SDC) ConvertToCheckProductionPlantBatchKey() *ProductionPlantBatchKey {
+	pm := &requests.ProductionPlantBatchKey{}
+
+	data := pm
+	res := &ProductionPlantBatchKey{
+		Product:                        data.Product,
+		ProductionPlantBatch:           data.ProductionPlantBatch,
+		ProductionPlantBusinessPartner: data.ProductionPlantBusinessPartner,
+		ProductionPlant:                data.ProductionPlant,
+		ValidityStartDate:              data.ValidityStartDate,
+		ValidityEndDate:                data.ValidityEndDate,
+	}
+
+	return res
+}
+
+func (psdc *SDC) ConvertToProductionPlantBatchExconf(resData map[string]interface{}) (*ProductionPlantBatchMasterdata, error) {
+	pm := &requests.ProductionPlantBatchMasterdata{}
+
+	result := resData["result"].(bool)
+	if !result {
+		return nil, xerrors.Errorf(resData["message"].(string))
+	}
+
+	raw, err := json.Marshal(resData["message"].(map[string]interface{})["ProductionPlantBatchCheck"])
+	if err != nil {
+		return nil, xerrors.Errorf("data marshal error :%#v", err.Error())
+	}
+	err = json.Unmarshal(raw, pm)
+	if err != nil {
+		return nil, xerrors.Errorf("input data marshal error :%#v", err.Error())
+	}
+
+	data := pm
+	res := &ProductionPlantBatchMasterdata{
+		Product:                    data.Product,
+		BusinessPartner:            data.BusinessPartner,
+		Plant:                      data.Plant,
+		Batch:                      data.Batch,
+		ProductionPlantBatchExConf: data.ProductionPlantBatchExConf,
+	}
+
+	return res, nil
+}
+
+func (psdc *SDC) ConvertToProductionPlantBatchMaster(i int, countryOfOrigin *string, validityStartDate string) *ProductionPlantBatchMasterdata {
+	pm := &requests.ProductionPlantBatchMasterdata{
+		Product:             psdc.ProductionPlantBatchMasterdata[i].Product,
+		BusinessPartner:     psdc.ProductionPlantBatchMasterdata[i].BusinessPartner,
+		Plant:               psdc.ProductionPlantBatchMasterdata[i].Plant,
+		Batch:               psdc.ProductionPlantBatchMasterdata[i].Batch,
+		CountryOfOrigin:     *countryOfOrigin,
+		ValidityStartDate:   &validityStartDate,
+		ManufactureDate:     nil,
+		CreationDateTime:    getSystemDateTime(),
+		LastChangeDateTime:  getSystemDateTime(),
+		IsMarkedForDeletion: false,
+	}
+
+	data := pm
+	res := &ProductionPlantBatchMasterdata{
+		Product:             data.Product,
+		BusinessPartner:     data.BusinessPartner,
+		Plant:               data.Plant,
+		Batch:               data.Batch,
+		CountryOfOrigin:     data.CountryOfOrigin,
+		ValidityStartDate:   data.ValidityStartDate,
+		ManufactureDate:     data.ManufactureDate,
+		CreationDateTime:    data.CreationDateTime,
+		LastChangeDateTime:  data.LastChangeDateTime,
+		IsMarkedForDeletion: data.IsMarkedForDeletion,
+	}
+
+	return res
+}
+
+func (psdc *SDC) ConvertProductionPlantBatch() []*ProductionPlantBatch {
+	res := make([]*ProductionPlantBatch, 0)
+
+	for _, v := range psdc.ProductionPlantBatchMasterdata {
+		pm := &requests.ProductionPlantBatch{}
+
+		pm.Product = v.Product
+		pm.Batch = v.Batch
+		pm.BusinessPartner = *v.BusinessPartner
+		pm.Plant = v.Plant
+		pm.ProductionPlantBatchExConf = v.ProductionPlantBatchExConf
+
+		data := pm
+		res = append(res, &ProductionPlantBatch{
+			Product:                    data.Product,
+			Batch:                      data.Batch,
+			BusinessPartner:            data.BusinessPartner,
+			Plant:                      data.Plant,
+			ProductionPlantBatchExConf: data.ProductionPlantBatchExConf,
+		})
+
+	}
+
+	return res
+}
+
+func (psdc *SDC) ConvertToCheckDeliverToPlantBatchKey() *DeliverToPlantBatchKey {
+	pm := &requests.DeliverToPlantBatchKey{}
+
+	data := pm
+	res := &DeliverToPlantBatchKey{
+		Product:             data.Product,
+		DeliverToPlantBatch: data.DeliverToPlantBatch,
+		DeliverToParty:      data.DeliverToParty,
+		DeliverToPlant:      data.DeliverToPlant,
+		ValidityStartDate:   data.ValidityStartDate,
+		ValidityEndDate:     data.ValidityEndDate,
+	}
+
+	return res
+}
+
+func (psdc *SDC) ConvertToDeliverToPlantBatchExconf(resData map[string]interface{}) (*DeliverToPlantBatchMasterdata, error) {
+	pm := &requests.DeliverToPlantBatchMasterdata{}
+
+	result := resData["result"].(bool)
+	if !result {
+		return nil, xerrors.Errorf(resData["message"].(string))
+	}
+
+	raw, err := json.Marshal(resData["message"].(map[string]interface{})["DeliverToPlantBatchCheck"])
+	if err != nil {
+		return nil, xerrors.Errorf("data marshal error :%#v", err.Error())
+	}
+	err = json.Unmarshal(raw, pm)
+	if err != nil {
+		return nil, xerrors.Errorf("input data marshal error :%#v", err.Error())
+	}
+
+	data := pm
+	res := &DeliverToPlantBatchMasterdata{
+		Product:                   data.Product,
+		BusinessPartner:           data.BusinessPartner,
+		Plant:                     data.Plant,
+		Batch:                     data.Batch,
+		DeliverToPlantBatchExConf: data.DeliverToPlantBatchExConf,
+	}
+
+	return res, nil
+}
+
+func (psdc *SDC) ConvertToDeliverToPlantBatchMaster(i int, countryOfOrigin *string, validityStartDate string) *DeliverToPlantBatchMasterdata {
+	pm := &requests.DeliverToPlantBatchMasterdata{
+		Product:             psdc.ProductionPlantBatchMasterdata[i].Product,
+		BusinessPartner:     psdc.ProductionPlantBatchMasterdata[i].BusinessPartner,
+		Plant:               psdc.ProductionPlantBatchMasterdata[i].Plant,
+		Batch:               psdc.ProductionPlantBatchMasterdata[i].Batch,
+		CountryOfOrigin:     *countryOfOrigin,
+		ValidityStartDate:   &validityStartDate,
+		ManufactureDate:     nil,
+		CreationDateTime:    getSystemDateTime(),
+		LastChangeDateTime:  getSystemDateTime(),
+		IsMarkedForDeletion: false,
+	}
+
+	data := pm
+	res := &DeliverToPlantBatchMasterdata{
+		Product:             data.Product,
+		BusinessPartner:     data.BusinessPartner,
+		Plant:               data.Plant,
+		Batch:               data.Batch,
+		CountryOfOrigin:     data.CountryOfOrigin,
+		ValidityStartDate:   data.ValidityStartDate,
+		ManufactureDate:     data.ManufactureDate,
+		CreationDateTime:    data.CreationDateTime,
+		LastChangeDateTime:  data.LastChangeDateTime,
+		IsMarkedForDeletion: data.IsMarkedForDeletion,
+	}
+
+	return res
+
+}
+
+func (psdc *SDC) ConvertDeliverToPlantBatch() []*DeliverToPlantBatch {
+	res := make([]*DeliverToPlantBatch, 0)
+
+	for _, v := range psdc.DeliverToPlantBatchMasterdata {
+		pm := &requests.DeliverToPlantBatch{}
+
+		pm.Product = v.Product
+		pm.Batch = v.Batch
+		pm.BusinessPartner = *v.BusinessPartner
+		pm.Plant = v.Plant
+		pm.DeliverToPlantBatchExConf = v.DeliverToPlantBatchExConf
+
+		data := pm
+		res = append(res, &DeliverToPlantBatch{
+			Product:                   data.Product,
+			Batch:                     data.Batch,
+			BusinessPartner:           data.BusinessPartner,
+			Plant:                     data.Plant,
+			DeliverToPlantBatchExConf: data.DeliverToPlantBatchExConf,
+		})
+
+	}
+
+	return res
+}
+
+func (psdc *SDC) ConvertToCheckDeliverFromPlantBatchKey() *DeliverFromPlantBatchKey {
+	pm := &requests.DeliverFromPlantBatchKey{}
+
+	data := pm
+	res := &DeliverFromPlantBatchKey{
+		Product:               data.Product,
+		DeliverFromPlantBatch: data.DeliverFromPlantBatch,
+		DeliverFromParty:      data.DeliverFromParty,
+		DeliverFromPlant:      data.DeliverFromPlant,
+		ValidityStartDate:     data.ValidityStartDate,
+		ValidityEndDate:       data.ValidityEndDate,
+	}
+
+	return res
+}
+
+func (psdc *SDC) ConvertToDeliverFromPlantBatchExconf(resData map[string]interface{}) (*DeliverFromPlantBatchMasterdata, error) {
+	pm := &requests.DeliverFromPlantBatchMasterdata{}
+
+	result := resData["result"].(bool)
+	if !result {
+		return nil, xerrors.Errorf(resData["message"].(string))
+	}
+
+	raw, err := json.Marshal(resData["message"].(map[string]interface{})["DeliverFromPlantBatchCheck"])
+	if err != nil {
+		return nil, xerrors.Errorf("data marshal error :%#v", err.Error())
+	}
+	err = json.Unmarshal(raw, pm)
+	if err != nil {
+		return nil, xerrors.Errorf("input data marshal error :%#v", err.Error())
+	}
+
+	data := pm
+	res := &DeliverFromPlantBatchMasterdata{
+		Product:                     data.Product,
+		BusinessPartner:             data.BusinessPartner,
+		Plant:                       data.Plant,
+		Batch:                       data.Batch,
+		DeliverFromPlantBatchExConf: data.DeliverFromPlantBatchExConf,
+	}
+
+	return res, nil
+}
+
+func (psdc *SDC) ConvertToDeliverFromPlantBatchMaster(i int, countryOfOrigin *string, validityStartDate string) *DeliverFromPlantBatchMasterdata {
+	pm := &requests.DeliverFromPlantBatchMasterdata{
+		Product:             psdc.ProductionPlantBatchMasterdata[i].Product,
+		BusinessPartner:     psdc.ProductionPlantBatchMasterdata[i].BusinessPartner,
+		Plant:               psdc.ProductionPlantBatchMasterdata[i].Plant,
+		Batch:               psdc.ProductionPlantBatchMasterdata[i].Batch,
+		CountryOfOrigin:     *countryOfOrigin,
+		ValidityStartDate:   &validityStartDate,
+		ManufactureDate:     nil,
+		CreationDateTime:    getSystemDateTime(),
+		LastChangeDateTime:  getSystemDateTime(),
+		IsMarkedForDeletion: false,
+	}
+
+	data := pm
+	res := &DeliverFromPlantBatchMasterdata{
+		Product:             data.Product,
+		BusinessPartner:     data.BusinessPartner,
+		Plant:               data.Plant,
+		Batch:               data.Batch,
+		CountryOfOrigin:     data.CountryOfOrigin,
+		ValidityStartDate:   data.ValidityStartDate,
+		ManufactureDate:     data.ManufactureDate,
+		CreationDateTime:    data.CreationDateTime,
+		LastChangeDateTime:  data.LastChangeDateTime,
+		IsMarkedForDeletion: data.IsMarkedForDeletion,
+	}
+
+	return res
+
+}
+
+func (psdc *SDC) ConvertDeliverFromPlantBatch() []*DeliverFromPlantBatch {
+	res := make([]*DeliverFromPlantBatch, 0)
+
+	for _, v := range psdc.DeliverFromPlantBatchMasterdata {
+		pm := &requests.DeliverFromPlantBatch{}
+
+		pm.Product = v.Product
+		pm.Batch = v.Batch
+		pm.BusinessPartner = *v.BusinessPartner
+		pm.Plant = v.Plant
+		pm.DeliverFromPlantBatchExConf = v.DeliverFromPlantBatchExConf
+
+		data := pm
+		res = append(res, &DeliverFromPlantBatch{
+			Product:                     data.Product,
+			Batch:                       data.Batch,
+			BusinessPartner:             data.BusinessPartner,
+			Plant:                       data.Plant,
+			DeliverFromPlantBatchExConf: data.DeliverFromPlantBatchExConf,
+		})
+
+	}
+
+	return res
+}
+
 func (psdc *SDC) ConvertToStockConfirmationKey() *StockConfirmationKey {
 	pm := &requests.StockConfirmationKey{}
 
@@ -1286,7 +1595,7 @@ func (psdc *SDC) ConvertToStockConfirmationKey() *StockConfirmationKey {
 	return res
 }
 
-func (psdc *SDC) ConvertToStockConfirmation(resData map[string]interface{}, stockConfirmationIsOrdinary, stockConfirmationIsLotUnit bool) (*StockConfirmation, error) {
+func (psdc *SDC) ConvertToStockConfirmation(resData map[string]interface{}, stockConfirmationIsOrdinary, stockConfirmationIsLotUnit bool, orderID, orderItem int) (*StockConfirmation, error) {
 	pm := &requests.StockConfirmation{}
 
 	result := resData["result"].(bool)
@@ -1303,6 +1612,8 @@ func (psdc *SDC) ConvertToStockConfirmation(resData map[string]interface{}, stoc
 		return nil, xerrors.Errorf("input data marshal error :%#v", err.Error())
 	}
 
+	pm.OrderID = orderID
+	pm.OrderItem = orderItem
 	pm.StockConfirmationIsOrdinary = stockConfirmationIsOrdinary
 	pm.StockConfirmationIsLotUnit = stockConfirmationIsLotUnit
 
@@ -1311,12 +1622,13 @@ func (psdc *SDC) ConvertToStockConfirmation(resData map[string]interface{}, stoc
 		BusinessPartner:                 data.BusinessPartner,
 		Product:                         data.Product,
 		Plant:                           data.Plant,
+		StorageLocation:                 data.StorageLocation,
+		StorageBin:                      data.StorageBin,
 		Batch:                           data.Batch,
 		RequestedQuantity:               data.RequestedQuantity,
 		ProductStockAvailabilityDate:    data.ProductStockAvailabilityDate,
 		OrderID:                         data.OrderID,
 		OrderItem:                       data.OrderItem,
-		Project:                         data.Project,
 		InventoryStockType:              data.InventoryStockType,
 		InventorySpecialStockType:       data.InventorySpecialStockType,
 		AvailableProductStock:           data.AvailableProductStock,
@@ -2288,6 +2600,11 @@ func (psdc *SDC) ConvertToLastChangeTimeItem(systemTime string) *LastChangeTimeI
 	}
 
 	return &res
+}
+
+func getSystemDateTime() string {
+	day := time.Now()
+	return day.Format("2006-01-02 15:04:05")
 }
 
 func getBoolPtr(b bool) *bool {

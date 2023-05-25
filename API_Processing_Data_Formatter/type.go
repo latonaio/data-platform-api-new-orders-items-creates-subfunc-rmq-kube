@@ -48,6 +48,12 @@ type SDC struct {
 	ItemNetWeight                                          []*ItemNetWeight                                       `json:"ItemNetWeight"`
 	TaxCode                                                []*TaxCode                                             `json:"TaxCode"`
 	TaxRate                                                []*TaxRate                                             `json:"TaxRate"`
+	ProductionPlantBatch                                   []*ProductionPlantBatch                                `json:"ProductionPlantBatch"`
+	ProductionPlantBatchMasterdata                         []*ProductionPlantBatchMasterdata                      `json:"ProductionPlantBatchMasterdata"`
+	DeliverToPlantBatch                                    []*DeliverToPlantBatch                                 `json:"DeliverToPlantBatch"`
+	DeliverToPlantBatchMasterdata                          []*DeliverToPlantBatchMasterdata                       `json:"DeliverToPlantBatchMasterdata"`
+	DeliverFromPlantBatch                                  []*DeliverFromPlantBatch                               `json:"DeliverFromPlantBatch"`
+	DeliverFromPlantBatchMasterdata                        []*DeliverFromPlantBatchMasterdata                     `json:"DeliverFromPlantBatchMasterdata"`
 	StockConfirmation                                      []*StockConfirmation                                   `json:"StockConfirmation"`
 	StockConfirmationOrdersItemScheduleLine                []*OrdersItemScheduleLine                              `json:"StockConfirmationOrdersItemScheduleLine"`
 	StockConfirmationStatus                                []*StockConfirmationStatus                             `json:"StockConfirmationStatus"`
@@ -448,6 +454,171 @@ type TaxRate struct {
 	TaxRate           *float32 `json:"TaxRate"`
 }
 
+type ProductionPlantBatchKey struct {
+	Product                        string `json:"Product"`
+	ProductionPlantBatch           string `json:"ProductionPlantBatch"`
+	ProductionPlantBusinessPartner int    `json:"ProductionPlantBusinessPartner"`
+	ProductionPlant                string `json:"ProductionPlant"`
+	ValidityStartDate              string `json:"ValidityStartDate"`
+	ValidityEndDate                string `json:"ValidityEndDate"`
+}
+
+type ProductionPlantBatch struct {
+	Product                    string `json:"Product"`
+	BusinessPartner            int    `json:"BusinessPartner"`
+	Plant                      string `json:"Plant"`
+	Batch                      string `json:"Batch"`
+	ProductionPlantBatchExConf bool   `json:"ProductionPlantBatchExConf"`
+}
+
+type ProductionPlantBatchCheck struct {
+	ConnectionKey             string `json:"connection_key"`
+	Result                    bool   `json:"result"`
+	RedisKey                  string `json:"redis_key"`
+	Filepath                  string `json:"filepath"`
+	APIStatusCode             int    `json:"api_status_code"`
+	RuntimeSessionID          string `json:"runtime_session_id"`
+	BusinessPartner           *int   `json:"business_partner"`
+	ServiceLabel              string `json:"service_label"`
+	ProductionPlantBatchCheck struct {
+		BusinessPartner            *int    `json:"BusinessPartner"`
+		Product                    *string `json:"Product"`
+		Plant                      *string `json:"Plant"`
+		Batch                      *string `json:"Batch"`
+		ValidityStartDate          *string `json:"ValidityStartDate"`
+		ValidityEndDate            *string `json:"ValidityEndDate"`
+		ProductionPlantBatchExConf *bool   `json:"ProductionPlantBatchExConf"`
+	} `json:"Batch"`
+	APISchema string   `json:"api_schema"`
+	Accepter  []string `json:"accepter"`
+	OrderID   *int     `json:"order_id"`
+	Deleted   bool     `json:"deleted"`
+}
+
+type ProductionPlantBatchMasterdata struct {
+	Product                    string  `json:"Product"`
+	BusinessPartner            *int    `json:"BusinessPartner"`
+	Plant                      string  `json:"Plant"`
+	Batch                      string  `json:"Batch"`
+	CountryOfOrigin            string  `json:"CountryOfOrigin"`
+	ValidityStartDate          *string `json:"ValidityStartDate"`
+	ManufactureDate            *string `json:"ManufactureDate"`
+	CreationDateTime           string  `json:"CreationDateTime"`
+	LastChangeDateTime         string  `json:"LastChangeDateTime"`
+	IsMarkedForDeletion        bool    `json:"IsMarkedForDeletion"`
+	ProductionPlantBatchExConf bool    `json:"ProductionPlantBatchExConf"`
+}
+
+type DeliverToPlantBatchKey struct {
+	Product             string `json:"Product"`
+	DeliverToPlantBatch string `json:"DeliverToPlantBatch"`
+	DeliverToParty      int    `json:"DeliverToParty"`
+	DeliverToPlant      string `json:"DeliverToPlant"`
+	ValidityStartDate   string `json:"ValidityStartDate"`
+	ValidityEndDate     string `json:"ValidityEndDate"`
+}
+
+type DeliverToPlantBatch struct {
+	Product                   string `json:"Product"`
+	BusinessPartner           int    `json:"BusinessPartner"`
+	Plant                     string `json:"Plant"`
+	Batch                     string `json:"Batch"`
+	DeliverToPlantBatchExConf bool   `json:"DeliverToPlantBatchExConf"`
+}
+
+type DeliverToPlantBatchCheck struct {
+	ConnectionKey            string `json:"connection_key"`
+	Result                   bool   `json:"result"`
+	RedisKey                 string `json:"redis_key"`
+	Filepath                 string `json:"filepath"`
+	APIStatusCode            int    `json:"api_status_code"`
+	RuntimeSessionID         string `json:"runtime_session_id"`
+	BusinessPartner          *int   `json:"business_partner"`
+	ServiceLabel             string `json:"service_label"`
+	DeliverToPlantBatchCheck struct {
+		BusinessPartner           *int    `json:"BusinessPartner"`
+		Product                   *string `json:"Product"`
+		Plant                     *string `json:"Plant"`
+		Batch                     *string `json:"Batch"`
+		ValidityStartDate         *string `json:"ValidityStartDate"`
+		ValidityEndDate           *string `json:"ValidityEndDate"`
+		DeliverToPlantBatchExConf *bool   `json:"DeliverToPlantBatchExConf"`
+	} `json:"Batch"`
+	APISchema string   `json:"api_schema"`
+	Accepter  []string `json:"accepter"`
+	OrderID   *int     `json:"order_id"`
+	Deleted   bool     `json:"deleted"`
+}
+
+type DeliverToPlantBatchMasterdata struct {
+	Product                   string  `json:"Product"`
+	BusinessPartner           *int    `json:"BusinessPartner"`
+	Plant                     string  `json:"Plant"`
+	Batch                     string  `json:"Batch"`
+	CountryOfOrigin           string  `json:"CountryOfOrigin"`
+	ValidityStartDate         *string `json:"ValidityStartDate"`
+	ManufactureDate           *string `json:"ManufactureDate"`
+	CreationDateTime          string  `json:"CreationDateTime"`
+	LastChangeDateTime        string  `json:"LastChangeDateTime"`
+	IsMarkedForDeletion       bool    `json:"IsMarkedForDeletion"`
+	DeliverToPlantBatchExConf bool    `json:"DeliverToPlantBatchExConf"`
+}
+
+type DeliverFromPlantBatchKey struct {
+	Product               string `json:"Product"`
+	DeliverFromPlantBatch string `json:"DeliverFromPlantBatch"`
+	DeliverFromParty      int    `json:"DeliverFromParty"`
+	DeliverFromPlant      string `json:"DeliverFromPlant"`
+	ValidityStartDate     string `json:"ValidityStartDate"`
+	ValidityEndDate       string `json:"ValidityEndDate"`
+}
+
+type DeliverFromPlantBatch struct {
+	Product                     string `json:"Product"`
+	BusinessPartner             int    `json:"BusinessPartner"`
+	Plant                       string `json:"Plant"`
+	Batch                       string `json:"Batch"`
+	DeliverFromPlantBatchExConf bool   `json:"DeliverFromPlantBatchExConf"`
+}
+
+type DeliverFromPlantBatchCheck struct {
+	ConnectionKey              string `json:"connection_key"`
+	Result                     bool   `json:"result"`
+	RedisKey                   string `json:"redis_key"`
+	Filepath                   string `json:"filepath"`
+	APIStatusCode              int    `json:"api_status_code"`
+	RuntimeSessionID           string `json:"runtime_session_id"`
+	BusinessPartner            *int   `json:"business_partner"`
+	ServiceLabel               string `json:"service_label"`
+	DeliverFromPlantBatchCheck struct {
+		BusinessPartner             *int    `json:"BusinessPartner"`
+		Product                     *string `json:"Product"`
+		Plant                       *string `json:"Plant"`
+		Batch                       *string `json:"Batch"`
+		ValidityStartDate           *string `json:"ValidityStartDate"`
+		ValidityEndDate             *string `json:"ValidityEndDate"`
+		DeliverFromPlantBatchExConf *bool   `json:"DeliverFromPlantBatchExConf"`
+	} `json:"Batch"`
+	APISchema string   `json:"api_schema"`
+	Accepter  []string `json:"accepter"`
+	OrderID   *int     `json:"order_id"`
+	Deleted   bool     `json:"deleted"`
+}
+
+type DeliverFromPlantBatchMasterdata struct {
+	Product                     string  `json:"Product"`
+	BusinessPartner             *int    `json:"BusinessPartner"`
+	Plant                       string  `json:"Plant"`
+	Batch                       string  `json:"Batch"`
+	CountryOfOrigin             string  `json:"CountryOfOrigin"`
+	ValidityStartDate           *string `json:"ValidityStartDate"`
+	ManufactureDate             *string `json:"ManufactureDate"`
+	CreationDateTime            string  `json:"CreationDateTime"`
+	LastChangeDateTime          string  `json:"LastChangeDateTime"`
+	IsMarkedForDeletion         bool    `json:"IsMarkedForDeletion"`
+	DeliverFromPlantBatchExConf bool    `json:"DeliverFromPlantBatchExConf"`
+}
+
 type LotUnitStockConfirmationKey struct {
 	OrderID                                      int     `json:"OrderID"`
 	OrderItem                                    int     `json:"OrderItem"`
@@ -490,12 +661,13 @@ type StockConfirmation struct {
 	BusinessPartner                 int     `json:"BusinessPartner"`
 	Product                         string  `json:"Product"`
 	Plant                           string  `json:"Plant"`
+	StorageLocation                 string  `json:"StorageLocation"`
+	StorageBin                      string  `json:"StorageBin"`
 	Batch                           string  `json:"Batch"`
 	RequestedQuantity               float32 `json:"RequestedQuantity"`
 	ProductStockAvailabilityDate    string  `json:"ProductStockAvailabilityDate"`
 	OrderID                         int     `json:"OrderID"`
 	OrderItem                       int     `json:"OrderItem"`
-	Project                         string  `json:"Project"`
 	InventoryStockType              string  `json:"InventoryStockType"`
 	InventorySpecialStockType       string  `json:"InventorySpecialStockType"`
 	AvailableProductStock           float32 `json:"AvailableProductStock"`
@@ -521,12 +693,13 @@ type ProductAvailabilityCheck struct {
 		BusinessPartner                 *int     `json:"BusinessPartner"`
 		Product                         *string  `json:"Product"`
 		Plant                           *string  `json:"Plant"`
+		StorageLocation                 *string  `json:"StorageLocation"`
+		StorageBin                      *string  `json:"StorageBin"`
 		Batch                           *string  `json:"Batch"`
 		RequestedQuantity               *float32 `json:"RequestedQuantity"`
 		ProductStockAvailabilityDate    *string  `json:"ProductStockAvailabilityDate"`
 		OrderID                         *int     `json:"OrderID"`
 		OrderItem                       *int     `json:"OrderItem"`
-		Project                         *string  `json:"Project"`
 		InventoryStockType              *string  `json:"InventoryStockType"`
 		InventorySpecialStockType       *string  `json:"InventorySpecialStockType"`
 		AvailableProductStock           *float32 `json:"AvailableProductStock"`

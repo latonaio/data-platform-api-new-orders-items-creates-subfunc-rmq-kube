@@ -30,14 +30,14 @@ func (f *SubFunction) ProductTaxClassificationBillToCountry(
 	dataKey := psdc.ConvertToProductTaxClassificationKey()
 
 	for _, v := range sdc.Header.Item {
+		if v.Product == nil || len(*v.Product) == 0 {
+			return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
+		}
 		dataKey.Product = append(dataKey.Product, v.Product)
 	}
 
 	dataKey.Country = psdc.SupplyChainRelationshipBillingRelation[0].BillToCountry
 
-	if len(dataKey.Product) == 0 {
-		return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
-	}
 	repeat := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
@@ -72,14 +72,14 @@ func (f *SubFunction) ProductTaxClassificationBillFromCountry(
 	dataKey := psdc.ConvertToProductTaxClassificationKey()
 
 	for _, v := range sdc.Header.Item {
+		if v.Product == nil || len(*v.Product) == 0 {
+			return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
+		}
 		dataKey.Product = append(dataKey.Product, v.Product)
 	}
 
 	dataKey.Country = psdc.SupplyChainRelationshipBillingRelation[0].BillFromCountry
 
-	if len(dataKey.Product) == 0 {
-		return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
-	}
 	repeat := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
@@ -156,13 +156,13 @@ func (f *SubFunction) ProductMasterGeneral(
 	dataKey := psdc.ConvertToProductMasterGeneralKey()
 
 	for _, v := range sdc.Header.Item {
+		if v.Product == nil || len(*v.Product) == 0 {
+			return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
+		}
 		dataKey.Product = append(dataKey.Product, v.Product)
 	}
 	dataKey.ValidityStartDate = getSystemDate()
 
-	if len(dataKey.Product) == 0 {
-		return nil, xerrors.Errorf("入力ファイルの'Product'がありません。")
-	}
 	repeat := strings.Repeat("?,", len(dataKey.Product)-1) + "?"
 	for _, v := range dataKey.Product {
 		args = append(args, v)
@@ -965,6 +965,370 @@ func (f *SubFunction) TaxRate(
 	return data, err
 }
 
+func (f *SubFunction) ProductionPlantBatch(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) ([]*api_processing_data_formatter.ProductionPlantBatch, error) {
+	var err error
+	dataKey := make([]*api_processing_data_formatter.ProductionPlantBatchKey, 0)
+	data := make([]*api_processing_data_formatter.ProductionPlantBatchMasterdata, 0)
+
+	productionPlantProductMasterBPPlantMap := StructArrayToMap(psdc.ProductionPlantProductMasterBPPlant, "Product")
+	itemCategoryIsINVPMap := StructArrayToMap(psdc.ItemCategoryIsINVP, "Product")
+
+	for _, item := range sdc.Header.Item {
+		datumKey := psdc.ConvertToCheckProductionPlantBatchKey()
+		if item.Product == nil || len(*item.Product) == 0 {
+			continue
+		}
+		product := *item.Product
+		productionPlantBatch := *item.ProductionPlantBatch
+
+		if _, ok := productionPlantProductMasterBPPlantMap[product]; !ok {
+			continue
+		}
+		productionPlantProductMasterBPPlant := productionPlantProductMasterBPPlantMap[product]
+
+		if _, ok := itemCategoryIsINVPMap[product]; !ok {
+			continue
+		}
+		itemCategoryIsINVP := itemCategoryIsINVPMap[product]
+
+		if !itemCategoryIsINVP.ItemCategoryIsINVP {
+			continue
+		}
+
+		if productionPlantProductMasterBPPlant.IsBatchManagementRequired == nil {
+			continue
+		}
+		if *productionPlantProductMasterBPPlant.IsBatchManagementRequired {
+			datumKey.Product = product
+			datumKey.ProductionPlantBatch = productionPlantBatch
+			datumKey.ProductionPlantBusinessPartner = productionPlantProductMasterBPPlant.BusinessPartner
+			datumKey.ProductionPlant = productionPlantProductMasterBPPlant.Plant
+			datumKey.ValidityStartDate = getSystemDate()
+			datumKey.ValidityEndDate = getSystemDate()
+
+			dataKey = append(dataKey, datumKey)
+
+		}
+	}
+
+	for _, v := range dataKey {
+		req, err := jsonTypeConversion[api_processing_data_formatter.ProductionPlantBatchCheck](sdc)
+		if err != nil {
+			err = xerrors.Errorf("request create error: %w", err)
+			return nil, err
+		}
+		req.ProductionPlantBatchCheck.Product = &v.Product
+		req.ProductionPlantBatchCheck.Batch = &v.ProductionPlantBatch
+		req.ProductionPlantBatchCheck.BusinessPartner = &v.ProductionPlantBusinessPartner
+		req.ProductionPlantBatchCheck.Plant = &v.ProductionPlant
+		req.ProductionPlantBatchCheck.ValidityStartDate = &v.ValidityStartDate
+		req.ProductionPlantBatchCheck.ValidityEndDate = &v.ValidityEndDate
+
+		res, err := f.rmq.SessionKeepRequest(f.ctx, "data-platform-api-batch-master-record-exconf-queue", req)
+		if err != nil {
+			err = xerrors.Errorf("rmq error: %w", err)
+			return nil, err
+		}
+		res.Success()
+
+		datum, err := psdc.ConvertToProductionPlantBatchExconf(res.Data())
+		if err != nil {
+			return nil, err
+		}
+
+		data = append(data, datum)
+	}
+
+	psdc.ProductionPlantBatchMasterdata = data
+
+	productionPlantBatchMasterdata := make([]*api_processing_data_formatter.ProductionPlantBatchMasterdata, 0)
+	for i, v := range data {
+		if !v.ProductionPlantBatchExConf {
+			productMasterGeneralMap := StructArrayToMap(psdc.ProductMasterGeneral, "Product")
+			if _, ok := productMasterGeneralMap[v.Product]; !ok {
+				continue
+			}
+			productMasterGeneral := productMasterGeneralMap[v.Product]
+			inputItemMap := StructArrayToMap(sdc.Header.Item, "Product")
+			if _, ok := inputItemMap[v.Product]; !ok {
+				continue
+			}
+			inputItem := inputItemMap[v.Product]
+			if inputItem.ProductionPlantBatchValidityStartDate != nil {
+				datum := psdc.ConvertToProductionPlantBatchMaster(i, productMasterGeneral.CountryOfOrigin, *inputItem.ProductionPlantBatchValidityStartDate)
+				productionPlantBatchMasterdata = append(productionPlantBatchMasterdata, datum)
+			} else {
+				datum := psdc.ConvertToProductionPlantBatchMaster(i, productMasterGeneral.CountryOfOrigin, getSystemDate())
+				productionPlantBatchMasterdata = append(productionPlantBatchMasterdata, datum)
+			}
+
+		}
+	}
+
+	sessionID := sdc.RuntimeSessionID
+	for _, productionPlantBatchdata := range productionPlantBatchMasterdata {
+		res, err := f.rmq.SessionKeepRequest(f.ctx, f.conf.RMQ.QueueToSQL(), map[string]interface{}{"message": productionPlantBatchdata, "function": "Item", "runtime_session_id": sessionID})
+		if err != nil {
+			err = xerrors.Errorf("rmq error: %w", err)
+			return []*api_processing_data_formatter.ProductionPlantBatch{}, err
+		}
+		res.Success()
+	}
+
+	res := psdc.ConvertProductionPlantBatch()
+
+	return res, err
+}
+
+func (f *SubFunction) DeliverToPlantBatch(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) ([]*api_processing_data_formatter.DeliverToPlantBatch, error) {
+	var err error
+	dataKey := make([]*api_processing_data_formatter.DeliverToPlantBatchKey, 0)
+	data := make([]*api_processing_data_formatter.DeliverToPlantBatchMasterdata, 0)
+
+	supplyChainRelationshipDeliveryPlantRelationProductMap := StructArrayToMap(psdc.SupplyChainRelationshipDeliveryPlantRelationProduct, "Product")
+	supplyChainRelationshipProductMasterBPPlantDeliverToMap := StructArrayToMap(psdc.SupplyChainRelationshipProductMasterBPPlantDeliverTo, "Product")
+	itemCategoryIsINVPMap := StructArrayToMap(psdc.ItemCategoryIsINVP, "Product")
+
+	for _, item := range sdc.Header.Item {
+		datumKey := psdc.ConvertToCheckDeliverToPlantBatchKey()
+		if item.Product == nil || len(*item.Product) == 0 {
+			continue
+		}
+		product := *item.Product
+		deliverToPlantBatch := *item.DeliverToPlantBatch
+
+		if _, ok := supplyChainRelationshipDeliveryPlantRelationProductMap[product]; !ok {
+			continue
+		}
+		supplyChainRelationshipDeliveryPlantRelationProduct := supplyChainRelationshipDeliveryPlantRelationProductMap[product]
+
+		if _, ok := supplyChainRelationshipProductMasterBPPlantDeliverToMap[product]; !ok {
+			continue
+		}
+		supplyChainRelationshipProductMasterBPPlantDeliverTo := supplyChainRelationshipProductMasterBPPlantDeliverToMap[product]
+
+		if _, ok := itemCategoryIsINVPMap[product]; !ok {
+			continue
+		}
+		itemCategoryIsINVP := itemCategoryIsINVPMap[product]
+
+		if !itemCategoryIsINVP.ItemCategoryIsINVP {
+			continue
+		}
+
+		if supplyChainRelationshipProductMasterBPPlantDeliverTo.IsBatchManagementRequired == nil {
+			continue
+		}
+		if *supplyChainRelationshipProductMasterBPPlantDeliverTo.IsBatchManagementRequired {
+			datumKey.Product = product
+			datumKey.DeliverToPlantBatch = deliverToPlantBatch
+			datumKey.DeliverToParty = supplyChainRelationshipDeliveryPlantRelationProduct.DeliverToParty
+			datumKey.DeliverToPlant = supplyChainRelationshipDeliveryPlantRelationProduct.DeliverToPlant
+			datumKey.ValidityStartDate = getSystemDate()
+			datumKey.ValidityEndDate = getSystemDate()
+
+			dataKey = append(dataKey, datumKey)
+		}
+	}
+
+	for _, v := range dataKey {
+		req, err := jsonTypeConversion[api_processing_data_formatter.DeliverToPlantBatchCheck](sdc)
+		if err != nil {
+			err = xerrors.Errorf("request create error: %w", err)
+			return nil, err
+		}
+		req.DeliverToPlantBatchCheck.Product = &v.Product
+		req.DeliverToPlantBatchCheck.BusinessPartner = &v.DeliverToParty
+		req.DeliverToPlantBatchCheck.Plant = &v.DeliverToPlant
+		req.DeliverToPlantBatchCheck.Batch = &v.DeliverToPlantBatch
+		req.DeliverToPlantBatchCheck.ValidityStartDate = &v.ValidityStartDate
+		req.DeliverToPlantBatchCheck.ValidityEndDate = &v.ValidityEndDate
+
+		res, err := f.rmq.SessionKeepRequest(f.ctx, "data-platform-api-batch-master-record-exconf-queue", req)
+		if err != nil {
+			err = xerrors.Errorf("rmq error: %w", err)
+			return nil, err
+		}
+		res.Success()
+
+		datum, err := psdc.ConvertToDeliverToPlantBatchExconf(res.Data())
+		if err != nil {
+			return nil, err
+		}
+
+		data = append(data, datum)
+	}
+
+	psdc.DeliverToPlantBatchMasterdata = data
+
+	deliverToPlantBatchMasterdata := make([]*api_processing_data_formatter.DeliverToPlantBatchMasterdata, 0)
+	for i, v := range data {
+		if !v.DeliverToPlantBatchExConf {
+			productMasterGeneralMap := StructArrayToMap(psdc.ProductMasterGeneral, "Product")
+			if _, ok := productMasterGeneralMap[v.Product]; !ok {
+				continue
+			}
+			productMasterGeneral := productMasterGeneralMap[v.Product]
+			inputItemMap := StructArrayToMap(sdc.Header.Item, "Product")
+			if _, ok := inputItemMap[v.Product]; !ok {
+				continue
+			}
+			inputItem := inputItemMap[v.Product]
+			if inputItem.DeliverToPlantBatchValidityStartDate != nil {
+				datum := psdc.ConvertToDeliverToPlantBatchMaster(i, productMasterGeneral.CountryOfOrigin, *inputItem.DeliverToPlantBatchValidityStartDate)
+				deliverToPlantBatchMasterdata = append(deliverToPlantBatchMasterdata, datum)
+			} else {
+				datum := psdc.ConvertToDeliverToPlantBatchMaster(i, productMasterGeneral.CountryOfOrigin, getSystemDate())
+				deliverToPlantBatchMasterdata = append(deliverToPlantBatchMasterdata, datum)
+			}
+
+		}
+	}
+
+	sessionID := sdc.RuntimeSessionID
+	for _, deliverToPlantBatchMasterdata := range deliverToPlantBatchMasterdata {
+		res, err := f.rmq.SessionKeepRequest(f.ctx, f.conf.RMQ.QueueToSQL(), map[string]interface{}{"message": deliverToPlantBatchMasterdata, "function": "Item", "runtime_session_id": sessionID})
+		if err != nil {
+			err = xerrors.Errorf("rmq error: %w", err)
+			return []*api_processing_data_formatter.DeliverToPlantBatch{}, err
+		}
+		res.Success()
+	}
+
+	res := psdc.ConvertDeliverToPlantBatch()
+
+	return res, err
+}
+
+func (f *SubFunction) DeliverFromPlantBatch(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) ([]*api_processing_data_formatter.DeliverFromPlantBatch, error) {
+	var err error
+	dataKey := make([]*api_processing_data_formatter.DeliverFromPlantBatchKey, 0)
+	data := make([]*api_processing_data_formatter.DeliverFromPlantBatchMasterdata, 0)
+
+	supplyChainRelationshipDeliveryPlantRelationProductMap := StructArrayToMap(psdc.SupplyChainRelationshipDeliveryPlantRelationProduct, "Product")
+	supplyChainRelationshipProductMasterBPPlantDeliverFromMap := StructArrayToMap(psdc.SupplyChainRelationshipProductMasterBPPlantDeliverFrom, "Product")
+	itemCategoryIsINVPMap := StructArrayToMap(psdc.ItemCategoryIsINVP, "Product")
+
+	for _, item := range sdc.Header.Item {
+		datumKey := psdc.ConvertToCheckDeliverFromPlantBatchKey()
+		if item.Product == nil || len(*item.Product) == 0 {
+			continue
+		}
+		product := *item.Product
+		deliverFromPlantBatch := *item.DeliverFromPlantBatch
+
+		if _, ok := supplyChainRelationshipDeliveryPlantRelationProductMap[product]; !ok {
+			continue
+		}
+		supplyChainRelationshipDeliveryPlantRelationProduct := supplyChainRelationshipDeliveryPlantRelationProductMap[product]
+
+		if _, ok := supplyChainRelationshipProductMasterBPPlantDeliverFromMap[product]; !ok {
+			continue
+		}
+		supplyChainRelationshipProductMasterBPPlantDeliverFrom := supplyChainRelationshipProductMasterBPPlantDeliverFromMap[product]
+
+		if _, ok := itemCategoryIsINVPMap[product]; !ok {
+			continue
+		}
+		itemCategoryIsINVP := itemCategoryIsINVPMap[product]
+
+		if !itemCategoryIsINVP.ItemCategoryIsINVP {
+			continue
+		}
+
+		if supplyChainRelationshipProductMasterBPPlantDeliverFrom.IsBatchManagementRequired == nil {
+			continue
+		}
+		if !*supplyChainRelationshipProductMasterBPPlantDeliverFrom.IsBatchManagementRequired {
+			datumKey.Product = product
+			datumKey.DeliverFromPlantBatch = deliverFromPlantBatch
+			datumKey.DeliverFromParty = supplyChainRelationshipDeliveryPlantRelationProduct.DeliverFromParty
+			datumKey.DeliverFromPlant = supplyChainRelationshipDeliveryPlantRelationProduct.DeliverFromPlant
+			datumKey.ValidityStartDate = getSystemDate()
+			datumKey.ValidityEndDate = getSystemDate()
+
+			dataKey = append(dataKey, datumKey)
+		}
+	}
+
+	for _, v := range dataKey {
+		req, err := jsonTypeConversion[api_processing_data_formatter.DeliverFromPlantBatchCheck](sdc)
+		if err != nil {
+			err = xerrors.Errorf("request create error: %w", err)
+			return nil, err
+		}
+		req.DeliverFromPlantBatchCheck.Product = &v.Product
+		req.DeliverFromPlantBatchCheck.BusinessPartner = &v.DeliverFromParty
+		req.DeliverFromPlantBatchCheck.Plant = &v.DeliverFromPlant
+		req.DeliverFromPlantBatchCheck.Batch = &v.DeliverFromPlantBatch
+		req.DeliverFromPlantBatchCheck.ValidityStartDate = &v.ValidityStartDate
+		req.DeliverFromPlantBatchCheck.ValidityEndDate = &v.ValidityEndDate
+
+		res, err := f.rmq.SessionKeepRequest(f.ctx, "data-platform-api-batch-master-record-exconf-queue", req)
+		if err != nil {
+			err = xerrors.Errorf("rmq error: %w", err)
+			return nil, err
+		}
+		res.Success()
+
+		datum, err := psdc.ConvertToDeliverFromPlantBatchExconf(res.Data())
+		if err != nil {
+			return nil, err
+		}
+
+		data = append(data, datum)
+	}
+
+	psdc.DeliverFromPlantBatchMasterdata = data
+
+	deliverFromPlantBatchMasterdata := make([]*api_processing_data_formatter.DeliverFromPlantBatchMasterdata, 0)
+	for i, v := range data {
+		if !v.DeliverFromPlantBatchExConf {
+			productMasterGeneralMap := StructArrayToMap(psdc.ProductMasterGeneral, "Product")
+			if _, ok := productMasterGeneralMap[v.Product]; !ok {
+				continue
+			}
+			productMasterGeneral := productMasterGeneralMap[v.Product]
+			inputItemMap := StructArrayToMap(sdc.Header.Item, "Product")
+			if _, ok := inputItemMap[v.Product]; !ok {
+				continue
+			}
+			inputItem := inputItemMap[v.Product]
+			if inputItem.DeliverFromPlantBatchValidityStartDate != nil {
+				datum := psdc.ConvertToDeliverFromPlantBatchMaster(i, productMasterGeneral.CountryOfOrigin, *inputItem.DeliverFromPlantBatchValidityStartDate)
+				deliverFromPlantBatchMasterdata = append(deliverFromPlantBatchMasterdata, datum)
+			} else {
+				datum := psdc.ConvertToDeliverFromPlantBatchMaster(i, productMasterGeneral.CountryOfOrigin, getSystemDate())
+				deliverFromPlantBatchMasterdata = append(deliverFromPlantBatchMasterdata, datum)
+			}
+
+		}
+	}
+
+	sessionID := sdc.RuntimeSessionID
+	for _, deliverFromPlantBatchMasterdata := range deliverFromPlantBatchMasterdata {
+		res, err := f.rmq.SessionKeepRequest(f.ctx, f.conf.RMQ.QueueToSQL(), map[string]interface{}{"message": deliverFromPlantBatchMasterdata, "function": "Item", "runtime_session_id": sessionID})
+		if err != nil {
+			err = xerrors.Errorf("rmq error: %w", err)
+			return []*api_processing_data_formatter.DeliverFromPlantBatch{}, err
+		}
+		res.Success()
+	}
+
+	res := psdc.ConvertDeliverFromPlantBatch()
+
+	return res, err
+}
+
 func (f *SubFunction) StockConfirmation(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
@@ -1011,6 +1375,9 @@ func (f *SubFunction) StockConfirmation(
 			datumKey.StockConfirmationBusinessPartner = stockConfPlantRelationProduct.StockConfirmationBusinessPartner
 			datumKey.StockConfirmationPlant = stockConfPlantRelationProduct.StockConfirmationPlant
 
+			if item.ItemScheduleLine[0].ScheduleLineOrderQuantity == nil {
+				return nil, xerrors.Errorf("入力ファイルの'ScheduleLineOrderQuantity'に値がありません。")
+			}
 			datumKey.ScheduleLineOrderQuantity = *item.ItemScheduleLine[0].ScheduleLineOrderQuantity
 			if item.RequestedDeliveryDate == nil {
 				return nil, xerrors.Errorf("入力ファイルの'RequestedDeliveryDate'に値がありません。")
@@ -1027,6 +1394,9 @@ func (f *SubFunction) StockConfirmation(
 			datumKey.StockConfirmationBusinessPartner = stockConfPlantRelationProduct.StockConfirmationBusinessPartner
 			datumKey.StockConfirmationPlant = stockConfPlantRelationProduct.StockConfirmationPlant
 
+			if item.ItemScheduleLine[0].ScheduleLineOrderQuantity == nil {
+				return nil, xerrors.Errorf("入力ファイルの'ScheduleLineOrderQuantity'に値がありません。")
+			}
 			datumKey.ScheduleLineOrderQuantity = *item.ItemScheduleLine[0].ScheduleLineOrderQuantity
 			if item.RequestedDeliveryDate == nil {
 				return nil, xerrors.Errorf("入力ファイルの'RequestedDeliveryDate'に値がありません。")
@@ -1068,14 +1438,14 @@ func (f *SubFunction) StockConfirmation(
 			continue
 		}
 
-		res, err := f.rmq.SessionKeepRequest(f.ctx, "data-platform-function-product-stock-availability-check-queue", req)
+		res, err := f.rmq.SessionKeepRequest(f.ctx, f.conf.RMQ.ProductStockAvailabilityQueue(), req)
 		if err != nil {
 			err = xerrors.Errorf("rmq error: %w", err)
 			return nil, err
 		}
 		res.Success()
 
-		datum, err := psdc.ConvertToStockConfirmation(res.Data(), v.StockConfirmationIsOrdinary, v.StockConfirmationIsLotUnit)
+		datum, err := psdc.ConvertToStockConfirmation(res.Data(), v.StockConfirmationIsOrdinary, v.StockConfirmationIsLotUnit, *req.ProductStockAvailabilityCheck.OrderID, *req.ProductStockAvailabilityCheck.OrderItem)
 		if err != nil {
 			return nil, err
 		}

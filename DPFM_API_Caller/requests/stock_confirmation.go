@@ -4,12 +4,13 @@ type StockConfirmation struct {
 	BusinessPartner                 int     `json:"BusinessPartner"`
 	Product                         string  `json:"Product"`
 	Plant                           string  `json:"Plant"`
+	StorageLocation                 string  `json:"StorageLocation"`
+	StorageBin                      string  `json:"StorageBin"`
 	Batch                           string  `json:"Batch"`
 	RequestedQuantity               float32 `json:"RequestedQuantity"`
 	ProductStockAvailabilityDate    string  `json:"ProductStockAvailabilityDate"`
 	OrderID                         int     `json:"OrderID"`
 	OrderItem                       int     `json:"OrderItem"`
-	Project                         string  `json:"Project"`
 	InventoryStockType              string  `json:"InventoryStockType"`
 	InventorySpecialStockType       string  `json:"InventorySpecialStockType"`
 	AvailableProductStock           float32 `json:"AvailableProductStock"`

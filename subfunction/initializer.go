@@ -442,6 +442,27 @@ func (f *SubFunction) CreateSdc(
 					return
 				}
 
+				// //2-22-1,2 ロットマスタの存在性チェック(ProductionPlantBatch) //2-6,2-8
+				// psdc.ProductionPlantBatch, e = f.ProductionPlantBatch(sdc, psdc)
+				// if e != nil {
+				// 	err = e
+				// 	return
+				// }
+
+				// //2-23-1,2 DeliverToPlantBatch //2-6,2-9-2
+				// psdc.DeliverToPlantBatch, e = f.DeliverToPlantBatch(sdc, psdc)
+				// if e != nil {
+				// 	err = e
+				// 	return
+				// }
+
+				// //2-24. DeliverFromPlantBatch //2-6,2-9-3
+				// psdc.DeliverFromPlantBatch, e = f.DeliverFromPlantBatch(sdc, psdc)
+				// if e != nil {
+				// 	err = e
+				// 	return
+				// }
+
 				//2-40-1 Inspection Plan, Inspection Plant //2-8-1
 				psdc.ProductMasterQuality, e = f.ProductMasterQuality(sdc, psdc)
 				if e != nil {
