@@ -1,4 +1,4 @@
-module data-platform-api-orders-items-creates-subfunc-rmq-kube
+module data-platform-api-orders-creates-subfunc-items-rmq-kube
 
 go 1.20
 

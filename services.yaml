@@ -2,40 +2,42 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    run: data-platform-api-orders-items-creates-subfunc-rmq-kube
-  name: data-platform-api-orders-items-creates-subfunc-rmq-kube
+    run: data-platform-api-orders-creates-subfunc-items-rmq-kube
+    app: ORDERS
+  name: data-platform-api-orders-creates-subfunc-items-rmq-kube
 spec:
   replicas: 1
   selector:
     matchLabels:
-      run: data-platform-api-orders-items-creates-subfunc-rmq-kube
+      run: data-platform-api-orders-creates-subfunc-items-rmq-kube
+      app: ORDERS
   template:
     metadata:
       labels:
-        run: data-platform-api-orders-items-creates-subfunc-rmq-kube
+        run: data-platform-api-orders-creates-subfunc-items-rmq-kube
     spec:
       nodeName: worker
-      hostname: data-platform-api-orders-items-creates-subfunc-rmq-kube
+      hostname: data-platform-api-orders-creates-subfunc-items-rmq-kube
       containers:
-        - name: data-platform-api-orders-items-creates-subfunc-rmq-kube
-          image: latonaio/data-platform-api-orders-items-creates-subfunc-rmq-kube
+        - name: data-platform-api-orders-creates-subfunc-items-rmq-kube
+          image: latonaio/data-platform-api-orders-creates-subfunc-items-rmq-kube
           imagePullPolicy: Always
           volumeMounts:
             - name: data
               mountPath: /var/lib/aion/Data
             - name: ui
-              mountPath: /var/lib/aion/UI/data-platform-api-orders-items-creates-subfunc-rmq-kube/public/
+              mountPath: /var/lib/aion/UI/data-platform-api-orders-creates-subfunc-items-rmq-kube/public/
           env:
             - name : "RMQ_QUEUE_FROM"
-              value: "data-platform-api-orders-items-creates-subfunc-queue"
+              value: "data-platform-api-orders-creates-subfunc-items-queue"
             - name : "RMQ_QUEUE_TO"
-              value: "data-platform-api-orders-items-creates-subfunc-queue"
+              value: "data-platform-api-orders-creates-subfunc-items-queue"
             - name : "RMQ_QUEUE_TO_SQL"
               value: "sql-update-kube"
             - name: "RMQ_PRODUCT_STOCK_AVAILABILITY_QUEUE"
               value: "data-platform-function-product-stock-availability-check-queue"
             - name: "RMQ_SESSION_CONTROL_QUEUE"
-              value: "data-platform-api-orders-items-creates-subfunc-session-control-queue"
+              value: "data-platform-api-orders-creates-items-subfunc-session-control-queue"
             - name : "MYSQL_DB_NAME"
               value: "DataPlatformMastersAndTransactionsMysqlKube"
           envFrom:
@@ -49,17 +51,17 @@ spec:
             path: /var/lib/aion/default/Data
         - name: ui
           hostPath:
-            path: /var/lib/aion/UI/data-platform-api-orders-items-creates-subfunc-rmq-kube/public/
+            path: /var/lib/aion/UI/data-platform-api-orders-creates-subfunc-items-rmq-kube/public/
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    run: data-platform-api-orders-items-creates-subfunc-rmq-kube
-  name: data-platform-api-orders-items-creates-subfunc-rmq-kube
+    run: data-platform-api-orders-creates-subfunc-items-rmq-kube
+  name: data-platform-api-orders-creates-subfunc-items-rmq-kube
 spec:
   selector:
-    run: data-platform-api-orders-items-creates-subfunc-rmq-kube
+    run: data-platform-api-orders-creates-subfunc-items-rmq-kube
   type: NodePort
   ports:
     - name: api

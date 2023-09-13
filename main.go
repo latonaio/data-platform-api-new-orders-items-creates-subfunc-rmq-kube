@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	api_input_reader "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Input_Reader"
-	dpfm_api_output_formatter "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Output_Formatter"
-	api_processing_data_formatter "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
-	"data-platform-api-orders-items-creates-subfunc-rmq-kube/config"
-	"data-platform-api-orders-items-creates-subfunc-rmq-kube/subfunction"
+	api_input_reader "data-platform-api-orders-creates-subfunc-items-rmq-kube/API_Input_Reader"
+	dpfm_api_output_formatter "data-platform-api-orders-creates-subfunc-items-rmq-kube/API_Output_Formatter"
+	api_processing_data_formatter "data-platform-api-orders-creates-subfunc-items-rmq-kube/API_Processing_Data_Formatter"
+	"data-platform-api-orders-creates-subfunc-items-rmq-kube/config"
+	"data-platform-api-orders-creates-subfunc-items-rmq-kube/subfunction"
 	"fmt"
 	"time"
 

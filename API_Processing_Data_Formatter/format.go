@@ -1,8 +1,8 @@
 package api_processing_data_formatter
 
 import (
-	api_input_reader "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Input_Reader"
-	"data-platform-api-orders-items-creates-subfunc-rmq-kube/DPFM_API_Caller/requests"
+	api_input_reader "data-platform-api-orders-creates-subfunc-items-rmq-kube/API_Input_Reader"
+	"data-platform-api-orders-creates-subfunc-items-rmq-kube/DPFM_API_Caller/requests"
 	"database/sql"
 	"encoding/json"
 	"time"

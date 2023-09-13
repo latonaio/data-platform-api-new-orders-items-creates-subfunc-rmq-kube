@@ -1,65 +1,48 @@
 package subfunction
 
 import (
-	api_input_reader "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Input_Reader"
-	api_processing_data_formatter "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
+	api_input_reader "data-platform-api-orders-creates-subfunc-items-rmq-kube/API_Input_Reader"
+	dpfm_api_output_formatter "data-platform-api-orders-creates-subfunc-items-rmq-kube/API_Output_Formatter"
+	api_processing_data_formatter "data-platform-api-orders-creates-subfunc-items-rmq-kube/API_Processing_Data_Formatter"
 )
 
-func (f *SubFunction) Partner(
+func (f *SubFunction) SetValue(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
-) []*api_processing_data_formatter.Partner {
-	data := make([]*api_processing_data_formatter.Partner, 0)
-
-	for _, v := range psdc.BusinessPartnerGeneralBuyer {
-		datum := psdc.ConvertToPartner("BUYER", v)
-		data = append(data, datum)
+	osdc *dpfm_api_output_formatter.SDC,
+) error {
+	item, err := dpfm_api_output_formatter.ConvertToItem(sdc, psdc)
+	if err != nil {
+		return err
 	}
 
-	for _, v := range psdc.BusinessPartnerGeneralSeller {
-		datum := psdc.ConvertToPartner("SELLER", v)
-		data = append(data, datum)
+	itemPricingElement, err := dpfm_api_output_formatter.ConvertToItemPricingElement(sdc, psdc)
+	if err != nil {
+		return err
 	}
 
-	for _, v := range psdc.BusinessPartnerGeneralDeliverToParty {
-		datum := psdc.ConvertToPartner("DELIVER_TO", v)
-		data = append(data, datum)
+	itemScheduleLine, err := dpfm_api_output_formatter.ConvertToItemScheduleLine(sdc, psdc)
+	if err != nil {
+		return err
 	}
 
-	for _, v := range psdc.BusinessPartnerGeneralDeliverFromParty {
-		datum := psdc.ConvertToPartner("DELIVER_FROM", v)
-		data = append(data, datum)
+	partner, err := dpfm_api_output_formatter.ConvertToPartner(sdc, psdc)
+	if err != nil {
+		return err
 	}
 
-	for _, v := range psdc.BusinessPartnerGeneralBillToParty {
-		datum := psdc.ConvertToPartner("BILL_TO", v)
-		data = append(data, datum)
+	address, err := dpfm_api_output_formatter.ConvertToAddress(sdc, psdc)
+	if err != nil {
+		return err
 	}
 
-	for _, v := range psdc.BusinessPartnerGeneralBillFromParty {
-		datum := psdc.ConvertToPartner("BILL_FROM", v)
-		data = append(data, datum)
+	osdc.Message = dpfm_api_output_formatter.Message{
+		Item:               item,
+		ItemPricingElement: itemPricingElement,
+		ItemScheduleLine:   itemScheduleLine,
+		Partner:            partner,
+		Address:            address,
 	}
 
-	for _, v := range psdc.BusinessPartnerGeneralPayer {
-		datum := psdc.ConvertToPartner("PAYER", v)
-		data = append(data, datum)
-	}
-
-	for _, v := range psdc.BusinessPartnerGeneralPayee {
-		datum := psdc.ConvertToPartner("PAYEE", v)
-		data = append(data, datum)
-	}
-
-	for _, v := range psdc.StockConfPlantBPGeneral {
-		datum := psdc.ConvertToPartner("STOCK_CONFIRMATION", v)
-		data = append(data, datum)
-	}
-
-	for _, v := range psdc.ProductionPlantBPGeneral {
-		datum := psdc.ConvertToPartner("MANUFACTURER", v)
-		data = append(data, datum)
-	}
-
-	return data
+	return err
 }

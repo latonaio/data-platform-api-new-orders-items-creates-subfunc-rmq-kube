@@ -2,10 +2,10 @@ package subfunction
 
 import (
 	"context"
-	api_input_reader "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Input_Reader"
-	dpfm_api_output_formatter "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Output_Formatter"
-	api_processing_data_formatter "data-platform-api-orders-items-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
-	"data-platform-api-orders-items-creates-subfunc-rmq-kube/config"
+	api_input_reader "data-platform-api-orders-creates-subfunc-items-rmq-kube/API_Input_Reader"
+	dpfm_api_output_formatter "data-platform-api-orders-creates-subfunc-items-rmq-kube/API_Output_Formatter"
+	api_processing_data_formatter "data-platform-api-orders-creates-subfunc-items-rmq-kube/API_Processing_Data_Formatter"
+	"data-platform-api-orders-creates-subfunc-items-rmq-kube/config"
 	"sync"
 
 	"github.com/latonaio/golang-logging-library-for-data-platform/logger"
